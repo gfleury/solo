@@ -1,0 +1,12 @@
+/solo
+/TOKEN
+/dist
+/vendor
+/docs/bin/
+/docs/public/
+/docs/resources/
+/docs/node_modules/
+/docs/.hugo_build.lock
+/docs/package-lock.json
+/docs/package.json
+dist/
