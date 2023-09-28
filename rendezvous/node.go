@@ -2,6 +2,7 @@ package rendezvous
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/gfleury/solo/client/discovery"
@@ -21,10 +22,34 @@ import (
 	peerstore "github.com/libp2p/go-libp2p/core/peer"
 )
 
+const (
+	DEFAULT_RENDEZVOUS_BASE_PORT = 5533
+)
+
 type RendezvousHost struct {
 	ctx  context.Context
 	host host.Host
 	dht  *dht.IpfsDHT
+}
+
+var ListenAddrs = func(cfg *libp2p.Config) error {
+	addrs := []string{
+		fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", DEFAULT_RENDEZVOUS_BASE_PORT),
+		fmt.Sprintf("/ip4/0.0.0.0/udp/%d/quic-v1", DEFAULT_RENDEZVOUS_BASE_PORT),
+		fmt.Sprintf("/ip4/0.0.0.0/udp/%d/quic-v1/webtransport", DEFAULT_RENDEZVOUS_BASE_PORT+1),
+		fmt.Sprintf("/ip6/::/tcp/%d", DEFAULT_RENDEZVOUS_BASE_PORT),
+		fmt.Sprintf("/ip6/::/udp/%d/quic-v1", DEFAULT_RENDEZVOUS_BASE_PORT),
+		fmt.Sprintf("/ip6/::/udp/%d/quic-v1/webtransport", DEFAULT_RENDEZVOUS_BASE_PORT+1),
+	}
+	listenAddrs := make([]multiaddr.Multiaddr, 0, len(addrs))
+	for _, s := range addrs {
+		addr, err := multiaddr.NewMultiaddr(s)
+		if err != nil {
+			return err
+		}
+		listenAddrs = append(listenAddrs, addr)
+	}
+	return cfg.Apply(libp2p.ListenAddrs(listenAddrs...))
 }
 
 var logger = log.Logger("rendezvous")
@@ -38,6 +63,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	addrs, err := r.GetAddrs()
+	if err != nil {
+		panic(err)
+	}
+	logger.Infof("Rendezvous endpoints: %s", addrs)
 
 	err = r.Start()
 	if err != nil {
@@ -85,7 +116,7 @@ func NewRendezvousHost(ctx context.Context, name string, opts ...libp2p.Option) 
 			// support noise connections
 			libp2p.Security(noise.ID, noise.New),
 			// support any other default transports (TCP)
-			libp2p.DefaultListenAddrs,
+			ListenAddrs,
 			// Let's prevent our peer from having too many
 			// connections by attaching a connection manager.
 			libp2p.ConnectionManager(connmgr),

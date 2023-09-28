@@ -5,7 +5,6 @@ go 1.21
 replace github.com/mudler/water => ./third_party/water
 
 require (
-	github.com/c-robinson/iplib v1.0.7
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/creachadair/otp v0.4.1
 	github.com/flynn/noise v1.0.0
