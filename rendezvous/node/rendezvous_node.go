@@ -7,7 +7,6 @@ import (
 
 	"github.com/gfleury/solo/client/discovery"
 	"github.com/gfleury/solo/client/node"
-	"github.com/ipfs/go-log/v2"
 	"github.com/multiformats/go-multiaddr"
 
 	"github.com/libp2p/go-libp2p"
@@ -18,6 +17,7 @@ import (
 
 	ds "github.com/ipfs/go-datastore"
 	dsync "github.com/ipfs/go-datastore/sync"
+	"github.com/ipfs/go-log/v2"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	peerstore "github.com/libp2p/go-libp2p/core/peer"
 )
@@ -25,6 +25,8 @@ import (
 const (
 	DEFAULT_RENDEZVOUS_BASE_PORT = 5533
 )
+
+var logger = log.Logger("rendezvous")
 
 type RendezvousHost struct {
 	ctx  context.Context
@@ -50,37 +52,6 @@ var ListenAddrs = func(cfg *libp2p.Config) error {
 		listenAddrs = append(listenAddrs, addr)
 	}
 	return cfg.Apply(libp2p.ListenAddrs(listenAddrs...))
-}
-
-var logger = log.Logger("rendezvous")
-
-func main() {
-	log.SetAllLoggers(log.LevelWarn)
-	log.SetLogLevel("rendezvous", "debug")
-	logger.Info("crate host")
-
-	r, err := NewRendezvousHost(context.Background(), "rendezvous")
-	if err != nil {
-		panic(err)
-	}
-
-	addrs, err := r.GetAddrs()
-	if err != nil {
-		panic(err)
-	}
-	logger.Infof("Rendezvous endpoints: %s", addrs)
-
-	err = r.Start()
-	if err != nil {
-		panic(err)
-	}
-
-	err = r.Start()
-	if err != nil {
-		panic(err)
-	}
-
-	select {}
 }
 
 func NewRendezvousHost(ctx context.Context, name string, opts ...libp2p.Option) (*RendezvousHost, error) {

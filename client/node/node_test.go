@@ -12,7 +12,7 @@ import (
 	"github.com/gfleury/solo/client/logger"
 	"github.com/gfleury/solo/client/node"
 	"github.com/gfleury/solo/client/types"
-	"github.com/gfleury/solo/rendezvous"
+	rendezvous "github.com/gfleury/solo/rendezvous/node"
 	"github.com/ipfs/go-log"
 	"github.com/stretchr/testify/suite"
 )
