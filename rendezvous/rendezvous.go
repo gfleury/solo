@@ -12,6 +12,7 @@ func main() {
 
 	log.SetAllLoggers(log.LevelWarn)
 	log.SetLogLevel("rendezvous", "debug")
+	log.SetLogLevel("main", "debug")
 	logger.Info("create host")
 
 	r, err := rendezvous.NewRendezvousHost(context.Background(), "rendezvous")
@@ -23,6 +24,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	logger.Infof("Rendezvous endpoints: %s", addrs)
 
 	err = r.Start()

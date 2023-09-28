@@ -69,6 +69,10 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 
 	discoveryPeers := config.Peers2List(cliConfig.DiscoveryPeers)
 
+	if len(discoveryPeers) == 0 {
+		discoveryPeers = dht.DefaultBootstrapPeers
+	}
+
 	// Configure DHT Discovery
 	dhtOpts := []dht.Option{}
 	dhtService := discovery.NewDHT(dhtOpts...)
