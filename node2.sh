@@ -1,1 +1,1 @@
-sudo ./solo -i utun4 -t $(cat TOKEN) -l debug --address=10.1.0.2/24 --discovery-peers /ip4/192.168.178.67/tcp/44311/p2p/12D3KooWG1z8QnsmQytmej4C4xij4sCeenRhE7c7MR6PT1FHWaB1
+sudo ./solo -i utun4 -t $(cat TOKEN) -l debug --address=10.1.0.2/24

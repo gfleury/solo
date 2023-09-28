@@ -15,6 +15,10 @@ import (
 )
 
 var (
+	DEFAULT_DISCOVERY_PEERS = []string{"/dnsaddr/solo-rendezvous.fleury.gg/p2p/12D3KooWGXAXwKmP4Pg3QWUnrghQaJiHLJrKScSVpTUn59hGT7Vh"}
+)
+
+var (
 	config = configpackage.Config{
 		Token:             "",
 		InterfaceAddress:  "10.1.0.1/24",
@@ -68,7 +72,7 @@ func Execute() {
 	rootCmd.PersistentFlags().BoolVarP(&config.CreateInterface, "create-iface", "c", true, "Create TUN network interface")
 	rootCmd.PersistentFlags().StringVar(&config.Libp2pLogLevel, "libp2p-log-level", "error", "Libp2p log level")
 	rootCmd.PersistentFlags().StringVarP(&config.LogLevel, "log-level", "l", "info", "Log level")
-	rootCmd.PersistentFlags().StringArrayVarP(&config.DiscoveryPeers, "discovery-peers", "d", nil, "Discovery peers addresss")
+	rootCmd.PersistentFlags().StringArrayVarP(&config.DiscoveryPeers, "discovery-peers", "d", DEFAULT_DISCOVERY_PEERS, "Discovery peers addresss")
 	rootCmd.PersistentFlags().IntVarP(&config.DiscoveryInterval, "discovery-interval", "I", 600, "Discovery peers interval")
 	rootCmd.PersistentFlags().IntVarP(&config.InterfaceMTU, "interface-mtu", "m", 1420, "Discovery peers interval")
 	rootCmd.PersistentFlags().IntVarP(&config.MaxConnections, "max-connections", "M", 256, "Maximum peer connections")
