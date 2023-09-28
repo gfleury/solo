@@ -40,7 +40,10 @@ type Config struct {
 func Peers2List(peers []string) discovery.AddrList {
 	addrsList := discovery.AddrList{}
 	for _, p := range peers {
-		addrsList.Set(p)
+		err := addrsList.Set(p)
+		if err != nil {
+			panic(err)
+		}
 	}
 	return addrsList
 }

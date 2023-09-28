@@ -67,7 +67,7 @@ func (i *Identity) LoadOrGeneratePrivateKey(seed int64) (crypto.PrivKey, error) 
 			return nil, err
 		}
 
-		err = os.MkdirAll(IDENTITY_STORE_DIR, 0600)
+		err = os.MkdirAll(IDENTITY_STORE_DIR, 0700)
 		if err != nil {
 			return nil, err
 		}
