@@ -223,7 +223,7 @@ func (d *DHT) announceAndConnect(l log.StandardLogger, ctx context.Context, host
 			l.Debugf("Found peer %s with %d addresses", p.ID, len(p.Addrs))
 			timeoutCtx, cancelFunc := context.WithTimeout(ctx, 5*time.Second)
 			if err := host.Connect(timeoutCtx, p); err != nil {
-				l.Debugf("Failed connecting to %s with %d addresses", p.ID, len(p.Addrs))
+				l.Debugf("Failed connecting to %s with addresses: %s", p.ID, p.Addrs)
 			} else {
 				l.Debugf("Connected to %s with %d addresses", p.ID, len(p.Addrs))
 			}

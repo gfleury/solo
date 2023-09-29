@@ -7,6 +7,7 @@ import (
 
 	"github.com/gfleury/solo/client/discovery"
 	"github.com/gfleury/solo/client/node"
+	"github.com/gfleury/solo/client/utils"
 	"github.com/multiformats/go-multiaddr"
 
 	"github.com/libp2p/go-libp2p"
@@ -107,6 +108,8 @@ func NewRendezvousHost(ctx context.Context, name string, opts ...libp2p.Option) 
 				rendezvous.dht, err = dht.New(ctx, host, dht.Datastore(dstore), dht.Mode(dht.ModeAutoServer))
 				return rendezvous.dht, err
 			}),
+			// Remove unwanted listening addresses
+			libp2p.AddrsFactory(utils.DefaultAddrsFactory),
 			libp2p.EnableHolePunching(),
 			libp2p.EnableRelay(),
 			libp2p.EnableRelayService(),

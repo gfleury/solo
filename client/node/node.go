@@ -37,6 +37,7 @@ import (
 	"github.com/gfleury/solo/client/config"
 	"github.com/gfleury/solo/client/crypto"
 	discovery "github.com/gfleury/solo/client/discovery"
+	"github.com/gfleury/solo/client/utils"
 	"github.com/gfleury/solo/client/vpn"
 
 	"github.com/gfleury/solo/client/logger"
@@ -156,6 +157,10 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 	})
 
 	libp2pOpts = append(libp2pOpts, autoRelay)
+
+	// Use default addrsFactory to filter listenAddresses
+	addrsFactory := libp2p.AddrsFactory(utils.DefaultAddrsFactory)
+	libp2pOpts = append(libp2pOpts, addrsFactory)
 
 	nodeConfig := Config{
 		BroadcastKey:      connectionCfg.BroadcastKey,
