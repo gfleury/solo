@@ -20,19 +20,18 @@ var (
 
 var (
 	config = configpackage.Config{
-		Token:             "",
-		InterfaceAddress:  "10.1.0.1/24",
-		InterfaceName:     "utun0",
-		CreateInterface:   false,
-		Libp2pLogLevel:    "",
-		LogLevel:          "",
-		DiscoveryPeers:    []string{},
-		DiscoveryInterval: 0,
-		InterfaceMTU:      0,
-		MaxConnections:    0,
-		HolePunch:         false,
-		NatMap:            false,
-		NatService:        false,
+		Token:                "",
+		InterfaceAddress:     "10.1.0.1/24",
+		InterfaceName:        "utun0",
+		CreateInterface:      false,
+		Libp2pLogLevel:       "",
+		LogLevel:             "",
+		DiscoveryPeers:       []string{},
+		PublicDiscoveryPeers: false,
+		DiscoveryInterval:    0,
+		InterfaceMTU:         0,
+		MaxConnections:       0,
+		HolePunch:            false,
 	}
 )
 
@@ -77,8 +76,7 @@ func Execute() {
 	rootCmd.PersistentFlags().IntVarP(&config.InterfaceMTU, "interface-mtu", "m", 1420, "Discovery peers interval")
 	rootCmd.PersistentFlags().IntVarP(&config.MaxConnections, "max-connections", "M", 256, "Maximum peer connections")
 	rootCmd.PersistentFlags().BoolVarP(&config.HolePunch, "hole-punch", "H", false, "Enable holepunch to bypass NAT")
-	rootCmd.PersistentFlags().BoolVarP(&config.NatMap, "nat-map", "N", false, "Enable NAT map")
-	rootCmd.PersistentFlags().BoolVarP(&config.NatService, "nat-service", "n", false, "Enable NAT service")
+	rootCmd.PersistentFlags().BoolVarP(&config.PublicDiscoveryPeers, "public", "p", false, "Enable public discovery peers")
 
 	err := rootCmd.Execute()
 	if err != nil {

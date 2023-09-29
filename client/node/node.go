@@ -53,8 +53,8 @@ type Node struct {
 }
 
 var defaultLibp2pOptions = []libp2p.Option{
-	libp2p.EnableNATService(),
 	libp2p.NATPortMap(),
+	libp2p.ForceReachabilityPrivate(),
 }
 
 func NewWithConfig(cliConfig config.Config) (*Node, error) {
@@ -69,11 +69,14 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 		return nil, err
 	}
 
-	discoveryPeers := config.Peers2List(cliConfig.DiscoveryPeers)
-
-	if len(discoveryPeers) == 0 {
-		discoveryPeers = dht.DefaultBootstrapPeers
+	if cliConfig.PublicDiscoveryPeers {
+		cliConfig.DiscoveryPeers = []string{}
+		for _, peer := range dht.DefaultBootstrapPeers {
+			cliConfig.DiscoveryPeers = append(cliConfig.DiscoveryPeers, peer.String())
+		}
 	}
+
+	discoveryPeers := config.Peers2List(cliConfig.DiscoveryPeers)
 
 	// Configure DHT Discovery
 	dhtOpts := []dht.Option{}
@@ -131,14 +134,6 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 
 	if cliConfig.HolePunch {
 		libp2pOpts = append(libp2pOpts, libp2p.EnableHolePunching())
-	}
-
-	if cliConfig.NatService {
-		libp2pOpts = append(libp2pOpts, libp2p.EnableNATService())
-	}
-
-	if cliConfig.NatMap {
-		libp2pOpts = append(libp2pOpts, libp2p.NATPortMap())
 	}
 
 	// Enable auto-relay, for behind NAT clients

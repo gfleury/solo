@@ -21,20 +21,19 @@ import (
 // Config is the config struct for the node and the default EdgeVPN services
 // It is used to generate opts for the node and the services before start.
 type Config struct {
-	Token             string
-	InterfaceAddress  string
-	InterfaceName     string
-	CreateInterface   bool
-	Libp2pLogLevel    string
-	LogLevel          string
-	DiscoveryPeers    []string
-	DiscoveryInterval int
-	InterfaceMTU      int
-	MaxConnections    int
-	HolePunch         bool
-	NatMap            bool
-	NatService        bool
-	RandomIdentity    bool
+	Token                string
+	InterfaceAddress     string
+	InterfaceName        string
+	CreateInterface      bool
+	Libp2pLogLevel       string
+	LogLevel             string
+	DiscoveryPeers       []string
+	PublicDiscoveryPeers bool
+	DiscoveryInterval    int
+	InterfaceMTU         int
+	MaxConnections       int
+	HolePunch            bool
+	RandomIdentity       bool
 }
 
 func Peers2List(peers []string) discovery.AddrList {
