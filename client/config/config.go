@@ -34,6 +34,7 @@ type Config struct {
 	MaxConnections       int
 	HolePunch            bool
 	RandomIdentity       bool
+	RandomPort           bool
 }
 
 func Peers2List(peers []string) discovery.AddrList {

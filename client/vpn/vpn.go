@@ -122,7 +122,10 @@ func (v *VPNService) Run(ctx context.Context, logger log.StandardLogger, host ho
 	}
 
 	// Announce ourselves on the network
-	v.broadcast.AnnounceMyself(ctx)
+	go func() {
+		time.Sleep(5 * time.Second)
+		v.broadcast.AnnounceMyself(ctx)
+	}()
 
 	// read packets from the network interface
 	go v.readPackets(ctx)
@@ -146,7 +149,7 @@ func (v *VPNService) dataStreamHandler() func(stream network.Stream) {
 		v.logger.Debugf("Finish and remove noiseStream handler: %s", dstID)
 
 		// Stream ist tot
-		v.vpnInterface.streamMap.Delete(streamKey)
+		// v.vpnInterface.streamMap.Delete(streamKey)
 	}
 }
 

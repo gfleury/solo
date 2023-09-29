@@ -16,6 +16,7 @@ package node
 
 import (
 	"context"
+	"fmt"
 	"net"
 
 	"github.com/libp2p/go-libp2p"
@@ -23,6 +24,48 @@ import (
 	conngater "github.com/libp2p/go-libp2p/p2p/net/conngater"
 	multiaddr "github.com/multiformats/go-multiaddr"
 )
+
+const (
+	DEFAULT_BASE_PORT = 5544
+)
+
+func ListenAddrs(randomPort bool, ports ...int) func(cfg *libp2p.Config) error {
+	var port, webTransportPort int
+	if len(ports) == 0 {
+		port = DEFAULT_BASE_PORT
+		webTransportPort = DEFAULT_BASE_PORT + 1
+	} else {
+		port = ports[0]
+		if len(ports) > 1 {
+			webTransportPort = ports[1]
+		} else {
+			webTransportPort = port + 1
+		}
+	}
+	if randomPort {
+		port = 0
+		webTransportPort = 0
+	}
+	return func(cfg *libp2p.Config) error {
+		addrs := []string{
+			fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port),
+			fmt.Sprintf("/ip4/0.0.0.0/udp/%d/quic-v1", port),
+			fmt.Sprintf("/ip4/0.0.0.0/udp/%d/quic-v1/webtransport", webTransportPort),
+			fmt.Sprintf("/ip6/::/tcp/%d", port),
+			fmt.Sprintf("/ip6/::/udp/%d/quic-v1", port),
+			fmt.Sprintf("/ip6/::/udp/%d/quic-v1/webtransport", webTransportPort),
+		}
+		listenAddrs := make([]multiaddr.Multiaddr, 0, len(addrs))
+		for _, s := range addrs {
+			addr, err := multiaddr.NewMultiaddr(s)
+			if err != nil {
+				return err
+			}
+			listenAddrs = append(listenAddrs, addr)
+		}
+		return cfg.Apply(libp2p.ListenAddrs(listenAddrs...))
+	}
+}
 
 // Host returns the libp2p peer host
 func (e *Node) Host() host.Host {
@@ -80,7 +123,7 @@ func (e *Node) genHost(ctx context.Context) (host.Host, error) {
 		}
 		opts = append(opts, libp2p.ListenAddrs(addrs...))
 	} else {
-		opts = append(opts, libp2p.DefaultListenAddrs)
+		opts = append(opts, ListenAddrs(e.config.RandomPort))
 	}
 
 	for _, d := range e.config.DiscoveryService {

@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 
+	"github.com/gfleury/solo/client/node"
+	"github.com/gfleury/solo/client/utils"
 	rendezvous "github.com/gfleury/solo/rendezvous/node"
 	"github.com/ipfs/go-log/v2"
+	"github.com/libp2p/go-libp2p"
 )
 
 func main() {
@@ -15,7 +18,11 @@ func main() {
 	log.SetLogLevel("main", "debug")
 	logger.Info("create host")
 
-	r, err := rendezvous.NewRendezvousHost(context.Background(), "rendezvous")
+	r, err := rendezvous.NewRendezvousHost(
+		context.Background(),
+		"rendezvous",
+		node.ListenAddrs(false, rendezvous.DEFAULT_RENDEZVOUS_BASE_PORT),
+		libp2p.AddrsFactory(utils.DefaultAddrsFactory))
 	if err != nil {
 		panic(err)
 	}
@@ -26,11 +33,6 @@ func main() {
 	}
 
 	logger.Infof("Rendezvous endpoints: %s", addrs)
-
-	err = r.Start()
-	if err != nil {
-		panic(err)
-	}
 
 	err = r.Start()
 	if err != nil {

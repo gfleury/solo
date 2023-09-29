@@ -2,6 +2,7 @@ package node_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/gfleury/solo/client/logger"
 	"github.com/gfleury/solo/client/node"
 	"github.com/gfleury/solo/client/types"
+	"github.com/gfleury/solo/cmd"
 	rendezvous "github.com/gfleury/solo/rendezvous/node"
 	"github.com/ipfs/go-log"
 	"github.com/stretchr/testify/suite"
@@ -54,6 +56,7 @@ func (s *NodeTestSuite) TestNodeDiscoveryBasic() {
 	e, _ := node.NewWithConfig(config.Config{
 		Token:             s.token,
 		RandomIdentity:    true,
+		RandomPort:        true,
 		InterfaceAddress:  "10.2.3.1/24",
 		DiscoveryPeers:    bootstrapAddrs.StringSlice(),
 		LogLevel:          "debug",
@@ -62,14 +65,16 @@ func (s *NodeTestSuite) TestNodeDiscoveryBasic() {
 	e2, _ := node.NewWithConfig(config.Config{
 		Token:             s.token,
 		RandomIdentity:    true,
+		RandomPort:        true,
 		InterfaceAddress:  "10.2.3.2/24",
 		DiscoveryPeers:    bootstrapAddrs.StringSlice(),
 		LogLevel:          "debug",
 		DiscoveryInterval: 10,
 	})
 
-	e.Start(ctx)
-	e2.Start(ctx)
+	go e.Start(ctx)
+	go e2.Start(ctx)
+	time.Sleep(3 * time.Second)
 
 	go func() {
 		for {
@@ -122,11 +127,26 @@ func (s *NodeTestSuite) TestShortIntervalOTP() {
 		s.FailNow(err.Error())
 	}
 
-	e, _ := node.NewWithConfig(config.Config{Token: token, RandomIdentity: true, InterfaceAddress: "10.2.3.1/24", DiscoveryPeers: bootstrapAddrs.StringSlice()})
-	e2, _ := node.NewWithConfig(config.Config{Token: token, RandomIdentity: true, InterfaceAddress: "10.2.3.2/24", DiscoveryPeers: bootstrapAddrs.StringSlice()})
+	e, _ := node.NewWithConfig(config.Config{
+		Token:             token,
+		RandomIdentity:    true,
+		RandomPort:        true,
+		InterfaceAddress:  "10.2.3.1/24",
+		DiscoveryPeers:    bootstrapAddrs.StringSlice(),
+		LogLevel:          "debug",
+		DiscoveryInterval: 10})
+	e2, _ := node.NewWithConfig(config.Config{
+		Token:             token,
+		RandomIdentity:    true,
+		RandomPort:        true,
+		InterfaceAddress:  "10.2.3.2/24",
+		DiscoveryPeers:    bootstrapAddrs.StringSlice(),
+		LogLevel:          "debug",
+		DiscoveryInterval: 10})
 
-	e.Start(ctx)
-	e2.Start(ctx)
+	go e.Start(ctx)
+	go e2.Start(ctx)
+	time.Sleep(3 * time.Second)
 
 	go func() {
 		for {
@@ -160,9 +180,17 @@ out:
 		}
 	}
 
-	e3, _ := node.NewWithConfig(config.Config{Token: token, RandomIdentity: true, InterfaceAddress: "10.2.3.3/24", DiscoveryPeers: bootstrapAddrs.StringSlice()})
+	e3, _ := node.NewWithConfig(config.Config{
+		Token:             token,
+		RandomIdentity:    true,
+		RandomPort:        true,
+		InterfaceAddress:  "10.2.3.3/24",
+		DiscoveryPeers:    bootstrapAddrs.StringSlice(),
+		LogLevel:          "debug",
+		DiscoveryInterval: 10})
 
-	e3.Start(ctx)
+	go e3.Start(ctx)
+	time.Sleep(3 * time.Second)
 
 	for {
 		select {
@@ -183,4 +211,51 @@ out:
 			time.Sleep(2 * time.Second)
 		}
 	}
+}
+
+func XXXTestTryConnectingRemote(t *testing.T) {
+	config := config.Config{
+		Token:                "dnBucHJlc2hhcmVka2V5OiA0cDFua1QwdTczcUhmaTRGa3FVQWM5bkxwUE9HWGJaQgpicm9hZGNhc3RrZXk6CiAga2V5OiBIZ0Z3ak5tMjJHYm4yc05zczJQdTd5Q21TbHp3MjhKYwogIGtleWxlbmd0aDogMzIKICBpbnRlcnZhbDogOTAwMApkaXNjb3ZlcnlrZXk6CiAga2V5OiA3c01NQkt3UElYNjB1Zlg2cTQ0b29TakNWVlFFdVYwWAogIGtleWxlbmd0aDogMzIKICBpbnRlcnZhbDogOTAwMAo=",
+		InterfaceAddress:     "10.1.0.1/24",
+		InterfaceName:        "",
+		CreateInterface:      false,
+		Libp2pLogLevel:       "info",
+		LogLevel:             "debug",
+		DiscoveryPeers:       cmd.DEFAULT_DISCOVERY_PEERS,
+		PublicDiscoveryPeers: false,
+		DiscoveryInterval:    60,
+		InterfaceMTU:         1500,
+		MaxConnections:       1500,
+		HolePunch:            true,
+		RandomIdentity:       false,
+		RandomPort:           false,
+	}
+
+	e, err := node.NewWithConfig(config)
+	if err != nil {
+		fmt.Printf("failed to create new node: %s\n", err)
+		return
+	}
+
+	ctx := context.Background()
+
+	go func() {
+		for {
+			time.Sleep(20 * time.Second)
+
+			fmt.Println(e.Host().Addrs())
+
+			for _, peerID := range e.Host().Network().Peers() {
+				addrInfo := e.Host().Network().Peerstore().PeerInfo(peerID)
+				e.Host().Connect(ctx, addrInfo)
+			}
+		}
+	}()
+
+	_ = e.Start(ctx)
+	if err != nil {
+		fmt.Printf("failed to start node: %s\n", err)
+		return
+	}
+
 }

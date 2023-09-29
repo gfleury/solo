@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -26,11 +26,11 @@ import (
 	"github.com/libp2p/go-libp2p"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
-	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 	rcmgr "github.com/libp2p/go-libp2p/p2p/host/resource-manager"
 	"github.com/libp2p/go-libp2p/p2p/net/conngater"
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
+	"github.com/libp2p/go-libp2p/p2p/protocol/identify"
 	"github.com/libp2p/go-libp2p/p2p/security/noise"
 
 	"github.com/gfleury/solo/client/broadcast"
@@ -53,8 +53,9 @@ type Node struct {
 }
 
 var defaultLibp2pOptions = []libp2p.Option{
-	libp2p.NATPortMap(),
-	libp2p.ForceReachabilityPrivate(),
+	libp2p.EnableNATService(),
+	libp2p.EnableRelayService(),
+	libp2p.EnableRelay(),
 }
 
 func NewWithConfig(cliConfig config.Config) (*Node, error) {
@@ -63,6 +64,22 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 		lvl = log.LevelError
 	}
 	logger := logger.New(lvl)
+
+	if cliConfig.Libp2pLogLevel != "" {
+		if strings.Contains(cliConfig.Libp2pLogLevel, ":") {
+			logCfg := strings.Split(cliConfig.Libp2pLogLevel, ":")
+			err = log.SetLogLevel(logCfg[0], logCfg[1])
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			lvl, err := log.LevelFromString(cliConfig.LogLevel)
+			if err != nil {
+				return nil, err
+			}
+			log.SetAllLoggers(lvl)
+		}
+	}
 
 	connectionCfg, err := YAMLConnectionConfigFromToken(cliConfig.Token)
 	if err != nil {
@@ -113,45 +130,34 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 
 	libp2pOpts = append(libp2pOpts, defaultLibp2pOptions...)
 
-	if runtime.GOOS == "darwin" {
-		libp2pOpts = append(libp2pOpts, libp2p.ResourceManager(&network.NullResourceManager{}))
-	} else {
-		var limiter rcmgr.Limiter
+	var limiter rcmgr.Limiter
 
-		defaults := rcmgr.DefaultLimits
-		def := &defaults
+	defaults := rcmgr.DefaultLimits
+	def := &defaults
 
-		libp2p.SetDefaultServiceLimits(def)
-		limiter = rcmgr.NewFixedLimiter(def.AutoScale())
+	libp2p.SetDefaultServiceLimits(def)
+	limiter = rcmgr.NewFixedLimiter(def.AutoScale())
 
-		rc, err := rcmgr.NewResourceManager(limiter)
-		if err != nil {
-			logger.Fatal("could not create resource manager")
-		}
-
-		libp2pOpts = append(libp2pOpts, libp2p.ResourceManager(rc))
+	rc, err := rcmgr.NewResourceManager(limiter)
+	if err != nil {
+		logger.Fatal("could not create resource manager")
 	}
+
+	libp2pOpts = append(libp2pOpts, libp2p.ResourceManager(rc))
 
 	if cliConfig.HolePunch {
 		libp2pOpts = append(libp2pOpts, libp2p.EnableHolePunching())
 	}
 
 	// Enable auto-relay, for behind NAT clients
-	autoRelay := libp2p.EnableAutoRelayWithPeerSource(func(_ context.Context, num int) <-chan peer.AddrInfo {
-		peerChan := make(chan peer.AddrInfo, num)
-		defer close(peerChan)
-		for i := 0; i < num && i < len(discoveryPeers); i++ {
-			addrInfo, err := peer.AddrInfoFromP2pAddr(discoveryPeers[i])
-			if err != nil {
-				logger.Errorf("Failed to get AddrinfoFromP2pAddr for relay with peer source %s: %s", discoveryPeers[i], err)
-				continue
-			}
-			peerChan <- *addrInfo
-		}
-		return peerChan
-	})
+	libp2pOpts = append(libp2pOpts, libp2p.EnableAutoRelayWithPeerSource(dhtService.FindClosePeers(logger)))
+	pi, err := peer.AddrInfoFromP2pAddr(discoveryPeers[0])
+	if err != nil {
+		return nil, err
+	}
+	libp2pOpts = append(libp2pOpts, libp2p.EnableAutoRelayWithStaticRelays([]peer.AddrInfo{*pi}))
 
-	libp2pOpts = append(libp2pOpts, autoRelay)
+	identify.ActivationThresh = 1
 
 	// Use default addrsFactory to filter listenAddresses
 	addrsFactory := libp2p.AddrsFactory(utils.DefaultAddrsFactory)
@@ -159,8 +165,9 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 
 	nodeConfig := Config{
 		BroadcastKey:      connectionCfg.BroadcastKey,
-		ListenAddresses:   []discovery.AddrList{}, // TODO: Not used still
+		ListenAddresses:   []discovery.AddrList{},
 		RandomIdentity:    cliConfig.RandomIdentity,
+		RandomPort:        cliConfig.RandomPort,
 		DiscoveryService:  []DiscoveryService{dhtService},
 		NetworkServices:   []NetworkService{vpnService},
 		Logger:            logger,
@@ -217,10 +224,10 @@ func (e *Node) startNetwork(ctx context.Context) error {
 	e.config.Logger.Info("Node ID:", host.ID())
 	e.config.Logger.Info("Node Addresses:", host.Addrs())
 
-	e.Broadcaster = broadcast.NewStreamBroadcaster(
+	e.Broadcaster = broadcast.NewBroadcaster(
 		e.config.Logger,
-		e.config.DiscoveryPeers,
-		e.config.BroadcastKey,
+		&e.config.BroadcastKey,
+		1024,
 	)
 
 	// Configure Broadcast and PRP

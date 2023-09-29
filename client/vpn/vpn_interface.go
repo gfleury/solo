@@ -60,7 +60,8 @@ func newInterface(config *InterfaceConfig, host VPNHost) (*VPNInterface, error) 
 	default:
 		i.hasInfoHeader = false
 	}
-	err = i.createInterface()
+
+	err = i.createInterface(config.CreateInterface)
 
 	return i, err
 }
@@ -82,7 +83,7 @@ func (v *VPNInterface) ReadPacket() (Packet, int, error) {
 		return packet, n, err
 	}
 
-	if v.hasInfoHeader {
+	if v.hasInfoHeader && n > 4 {
 		return packet[TUN_INFO_HEADER_SIZE:n], n - TUN_INFO_HEADER_SIZE, err
 	}
 	return packet[:n], n, err

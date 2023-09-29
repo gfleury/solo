@@ -152,35 +152,26 @@ func (d *DHT) bootstrapPeers(c log.StandardLogger, ctx context.Context, host hos
 	wg.Wait()
 }
 
-func (d *DHT) FindClosePeers(ll log.StandardLogger, onlyStaticRelays bool, static ...string) func(ctx context.Context, numPeers int) <-chan peer.AddrInfo {
+func (d *DHT) FindClosePeers(logger log.StandardLogger) func(ctx context.Context, numPeers int) <-chan peer.AddrInfo {
 	return func(ctx context.Context, numPeers int) <-chan peer.AddrInfo {
 		peerChan := make(chan peer.AddrInfo, numPeers)
+		toStream := []peer.AddrInfo{}
+
 		go func() {
-
-			toStream := []peer.AddrInfo{}
-
-			if !onlyStaticRelays {
-				closestPeers, err := d.GetClosestPeers(ctx, d.PeerID().String())
-				if err != nil {
-					close(peerChan)
-				}
-
-				for _, p := range closestPeers {
-					addrs := d.Host().Peerstore().Addrs(p)
-					if len(addrs) == 0 {
-						continue
-					}
-					ll.Debugf("[relay discovery] Found close peer '%s'", p.Pretty())
-					toStream = append(toStream, peer.AddrInfo{ID: p, Addrs: addrs})
-				}
+			closestPeers, err := d.GetClosestPeers(ctx, d.PeerID().String())
+			if err != nil {
+				logger.Error(err)
+				close(peerChan)
+				return
 			}
 
-			for _, r := range static {
-				pi, err := peer.AddrInfoFromString(r)
-				if err == nil {
-					ll.Debug("[static relay discovery] scanning ", pi.ID)
-					toStream = append(toStream, peer.AddrInfo{ID: pi.ID, Addrs: pi.Addrs})
+			for _, p := range closestPeers {
+				addrs := d.Host().Peerstore().Addrs(p)
+				if len(addrs) == 0 {
+					continue
 				}
+				logger.Debugf("[relay discovery] Found close peer '%s'", p.Pretty())
+				toStream = append(toStream, peer.AddrInfo{ID: p, Addrs: addrs})
 			}
 
 			if len(toStream) > numPeers {

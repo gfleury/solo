@@ -37,6 +37,7 @@ type Config struct {
 
 	// Insecure disables secure p2p e2e encrypted communication
 	RandomIdentity bool
+	RandomPort     bool
 
 	DiscoveryService []DiscoveryService
 	NetworkServices  []NetworkService
