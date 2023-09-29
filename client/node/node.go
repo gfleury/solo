@@ -217,10 +217,10 @@ func (e *Node) startNetwork(ctx context.Context) error {
 	e.config.Logger.Info("Node ID:", host.ID())
 	e.config.Logger.Info("Node Addresses:", host.Addrs())
 
-	e.Broadcaster = broadcast.NewBroadcaster(
+	e.Broadcaster = broadcast.NewStreamBroadcaster(
 		e.config.Logger,
-		&e.config.BroadcastKey,
-		1024,
+		e.config.DiscoveryPeers,
+		e.config.BroadcastKey,
 	)
 
 	// Configure Broadcast and PRP
