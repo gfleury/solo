@@ -27,6 +27,7 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/peer"
 	rcmgr "github.com/libp2p/go-libp2p/p2p/host/resource-manager"
 	"github.com/libp2p/go-libp2p/p2p/net/conngater"
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
@@ -138,6 +139,23 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 	if cliConfig.NatMap {
 		libp2pOpts = append(libp2pOpts, libp2p.NATPortMap())
 	}
+
+	// Enable auto-relay, for behind NAT clients
+	autoRelay := libp2p.EnableAutoRelayWithPeerSource(func(_ context.Context, num int) <-chan peer.AddrInfo {
+		peerChan := make(chan peer.AddrInfo, num)
+		defer close(peerChan)
+		for i := 0; i < num && i < len(discoveryPeers); i++ {
+			addrInfo, err := peer.AddrInfoFromP2pAddr(discoveryPeers[i])
+			if err != nil {
+				logger.Errorf("Failed to get AddrinfoFromP2pAddr for relay with peer source %s: %s", discoveryPeers[i], err)
+				continue
+			}
+			peerChan <- *addrInfo
+		}
+		return peerChan
+	})
+
+	libp2pOpts = append(libp2pOpts, autoRelay)
 
 	nodeConfig := Config{
 		BroadcastKey:      connectionCfg.BroadcastKey,

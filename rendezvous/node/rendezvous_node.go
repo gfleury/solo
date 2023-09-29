@@ -107,6 +107,9 @@ func NewRendezvousHost(ctx context.Context, name string, opts ...libp2p.Option) 
 				rendezvous.dht, err = dht.New(ctx, host, dht.Datastore(dstore), dht.Mode(dht.ModeAutoServer))
 				return rendezvous.dht, err
 			}),
+			libp2p.EnableHolePunching(),
+			libp2p.EnableRelay(),
+			libp2p.EnableRelayService(),
 		}...)
 
 	rendezvous.host, err = libp2p.New(finalOpts...)
