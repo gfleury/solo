@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/gfleury/solo/client/logger"
 	"github.com/gfleury/solo/client/node"
 	"github.com/gfleury/solo/client/utils"
 	"github.com/ipfs/go-log"
@@ -11,7 +12,7 @@ import (
 )
 
 func TestRendzvousNode(t *testing.T) {
-	var logger = log.Logger("main")
+	var logger = logger.New(log.LevelDebug)
 
 	log.SetAllLoggers(log.LevelWarn)
 	log.SetLogLevel("rendezvous", "debug")
@@ -20,6 +21,7 @@ func TestRendzvousNode(t *testing.T) {
 
 	r, err := NewRendezvousHost(
 		context.Background(),
+		logger,
 		"rendezvous",
 		node.ListenAddrs(false, DEFAULT_RENDEZVOUS_BASE_PORT),
 		libp2p.AddrsFactory(utils.DefaultAddrsFactory))

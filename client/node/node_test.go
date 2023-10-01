@@ -42,7 +42,7 @@ func (s *NodeTestSuite) TestNodeDiscoveryBasic() {
 	defer cancel()
 
 	log.SetAllLoggers(log.LevelDebug)
-	rendezvous, err := rendezvous.NewRendezvousHost(ctx, "")
+	rendezvous, err := rendezvous.NewRendezvousHost(ctx, logger.New(log.LevelDebug), "")
 	if err != nil {
 		s.FailNow(err.Error())
 	}
@@ -116,7 +116,7 @@ func (s *NodeTestSuite) TestShortIntervalOTP() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	rendezvous, err := rendezvous.NewRendezvousHost(ctx, "")
+	rendezvous, err := rendezvous.NewRendezvousHost(ctx, logger.New(log.LevelDebug), "")
 	if err != nil {
 		s.FailNow(err.Error())
 	}

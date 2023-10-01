@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gfleury/solo/client/discovery"
+	"github.com/gfleury/solo/client/logger"
 	"github.com/gfleury/solo/client/node"
 	"github.com/multiformats/go-multiaddr"
 
@@ -19,7 +20,6 @@ import (
 
 	ds "github.com/ipfs/go-datastore"
 	dsync "github.com/ipfs/go-datastore/sync"
-	"github.com/ipfs/go-log/v2"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 )
 
@@ -27,18 +27,18 @@ const (
 	DEFAULT_RENDEZVOUS_BASE_PORT = 5533
 )
 
-var logger = log.Logger("rendezvous")
-
 type RendezvousHost struct {
-	ctx   context.Context
-	host  host.Host
-	dht   *dht.IpfsDHT
-	relay *relay.Relay
+	ctx    context.Context
+	host   host.Host
+	dht    *dht.IpfsDHT
+	relay  *relay.Relay
+	logger *logger.Logger
 }
 
-func NewRendezvousHost(ctx context.Context, name string, opts ...libp2p.Option) (*RendezvousHost, error) {
+func NewRendezvousHost(ctx context.Context, logger *logger.Logger, name string, opts ...libp2p.Option) (*RendezvousHost, error) {
 	rendezvous := &RendezvousHost{
-		ctx: ctx,
+		ctx:    ctx,
+		logger: logger,
 	}
 
 	if name != "" {
@@ -89,8 +89,6 @@ func NewRendezvousHost(ctx context.Context, name string, opts ...libp2p.Option) 
 			}),
 		}...)
 
-	log.SetAllLoggers(log.LevelInfo)
-
 	rendezvous.host, err = libp2p.New(finalOpts...)
 	if err != nil {
 		return nil, err
@@ -99,7 +97,7 @@ func NewRendezvousHost(ctx context.Context, name string, opts ...libp2p.Option) 
 	limit := relay.DefaultLimit()
 	resources := relay.DefaultResources()
 
-	rendezvous.relay, err = relay.New(rendezvous.host, relay.WithLimit(limit), relay.WithResources(resources), relay.WithACL(&ACLFilter{}))
+	rendezvous.relay, err = relay.New(rendezvous.host, relay.WithLimit(limit), relay.WithResources(resources), relay.WithACL(&ACLFilter{logger}))
 	if err != nil {
 		return nil, err
 	}
@@ -108,12 +106,12 @@ func NewRendezvousHost(ctx context.Context, name string, opts ...libp2p.Option) 
 }
 
 func (r *RendezvousHost) Start() error {
-	logger.Info("Host created. We are:", r.host.ID())
-	logger.Info(r.host.Addrs())
+	r.logger.Info("Host created. We are:", r.host.ID())
+	r.logger.Info(r.host.Addrs())
 
 	// Bootstrap the DHT. In the default configuration, this spawns a Background
 	// thread that will refresh the peer table every five minutes.
-	logger.Info("Bootstrapping the DHT")
+	r.logger.Info("Bootstrapping the DHT")
 	if err := r.dht.Bootstrap(r.ctx); err != nil {
 		return err
 	}

@@ -31,7 +31,7 @@ func (s *DHTTestSuite) TestDHT() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	rendezvous, err := rendezvous.NewRendezvousHost(ctx, "")
+	rendezvous, err := rendezvous.NewRendezvousHost(ctx, logger.New(log.LevelDebug), "")
 	if err != nil {
 		s.FailNow(err.Error())
 	}

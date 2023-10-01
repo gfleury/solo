@@ -12,9 +12,9 @@ import (
 )
 
 func main() {
-	var logger = logger.New(log.LevelWarn)
+	var logger = logger.New(log.LevelDebug)
 
-	log.SetAllLoggers(log.LevelWarn)
+	log.SetAllLoggers(log.LevelInfo)
 	log.SetLogLevel("rendezvous", "debug")
 	log.SetLogLevel("main", "debug")
 
@@ -22,6 +22,7 @@ func main() {
 
 	r, err := rendezvous.NewRendezvousHost(
 		context.Background(),
+		logger,
 		"rendezvous",
 		node.ListenAddrs(false, rendezvous.DEFAULT_RENDEZVOUS_BASE_PORT),
 		libp2p.AddrsFactory(utils.DefaultAddrsFactory))
