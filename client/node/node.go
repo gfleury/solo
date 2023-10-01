@@ -38,10 +38,9 @@ import (
 	"github.com/gfleury/solo/client/config"
 	"github.com/gfleury/solo/client/crypto"
 	discovery "github.com/gfleury/solo/client/discovery"
+	"github.com/gfleury/solo/client/logger"
 	"github.com/gfleury/solo/client/utils"
 	"github.com/gfleury/solo/client/vpn"
-
-	"github.com/gfleury/solo/client/logger"
 )
 
 type Node struct {
@@ -158,13 +157,14 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 	}
 	libp2pOpts = append(libp2pOpts, libp2p.EnableAutoRelayWithStaticRelays([]peer.AddrInfo{*pi}))
 
-	identify.ActivationThresh = 1
-
 	// Use default addrsFactory to filter listenAddresses
 	addrsFactory := libp2p.AddrsFactory(utils.DefaultAddrsFactory)
 	libp2pOpts = append(libp2pOpts, addrsFactory)
 
+	// Force holepunch to activate easily and faster after seen only once
+	identify.ActivationThresh = 1
 	if runtime.GOOS == "darwin" {
+		identify.ActivationThresh = 0
 		libp2pOpts = append(libp2pOpts, libp2p.ForceReachabilityPrivate())
 	}
 

@@ -99,7 +99,7 @@ func NewRendezvousHost(ctx context.Context, name string, opts ...libp2p.Option) 
 	limit := relay.DefaultLimit()
 	resources := relay.DefaultResources()
 
-	rendezvous.relay, err = relay.New(rendezvous.host, relay.WithLimit(limit), relay.WithResources(resources))
+	rendezvous.relay, err = relay.New(rendezvous.host, relay.WithLimit(limit), relay.WithResources(resources), relay.WithACL(&ACLFilter{}))
 	if err != nil {
 		return nil, err
 	}

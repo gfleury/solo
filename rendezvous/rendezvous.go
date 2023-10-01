@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 
+	"github.com/gfleury/solo/client/logger"
 	"github.com/gfleury/solo/client/node"
 	"github.com/gfleury/solo/client/utils"
 	rendezvous "github.com/gfleury/solo/rendezvous/node"
@@ -11,11 +12,12 @@ import (
 )
 
 func main() {
-	var logger = log.Logger("main")
+	var logger = logger.New(log.LevelWarn)
 
 	log.SetAllLoggers(log.LevelWarn)
 	log.SetLogLevel("rendezvous", "debug")
 	log.SetLogLevel("main", "debug")
+
 	logger.Info("create host")
 
 	r, err := rendezvous.NewRendezvousHost(
