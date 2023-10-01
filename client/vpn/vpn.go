@@ -149,7 +149,7 @@ func (v *VPNService) dataStreamHandler() func(stream network.Stream) {
 		v.logger.Debugf("Finish and remove noiseStream handler: %s", dstID)
 
 		// Stream ist tot
-		// v.vpnInterface.streamMap.Delete(streamKey)
+		v.vpnInterface.streamMap.Delete(streamKey)
 	}
 }
 

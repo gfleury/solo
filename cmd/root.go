@@ -6,6 +6,8 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/pprof"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -79,6 +81,14 @@ func Execute() {
 	rootCmd.PersistentFlags().IntVarP(&config.MaxConnections, "max-connections", "M", 256, "Maximum peer connections")
 	rootCmd.PersistentFlags().BoolVarP(&config.HolePunch, "hole-punch", "H", false, "Enable holepunch to bypass NAT")
 	rootCmd.PersistentFlags().BoolVarP(&config.PublicDiscoveryPeers, "public", "p", false, "Enable public discovery peers")
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/debug/pprof/", pprof.Index)
+	mux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+	go http.ListenAndServe(":7777", mux)
 
 	err := rootCmd.Execute()
 	if err != nil {

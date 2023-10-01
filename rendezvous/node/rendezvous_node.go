@@ -84,7 +84,7 @@ func NewRendezvousHost(ctx context.Context, name string, opts ...libp2p.Option) 
 			libp2p.Routing(func(host host.Host) (routing.PeerRouting, error) {
 				dstore := dsync.MutexWrap(ds.NewMapDatastore())
 				var err error
-				rendezvous.dht, err = dht.New(ctx, host, dht.Datastore(dstore), dht.Mode(dht.ModeAutoServer))
+				rendezvous.dht, err = dht.New(ctx, host, dht.Datastore(dstore), dht.Mode(dht.ModeServer), dht.DisableAutoRefresh(), dht.MaxRecordAge(120*time.Second))
 				return rendezvous.dht, err
 			}),
 		}...)

@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -162,6 +163,10 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 	// Use default addrsFactory to filter listenAddresses
 	addrsFactory := libp2p.AddrsFactory(utils.DefaultAddrsFactory)
 	libp2pOpts = append(libp2pOpts, addrsFactory)
+
+	if runtime.GOOS == "darwin" {
+		libp2pOpts = append(libp2pOpts, libp2p.ForceReachabilityPrivate())
+	}
 
 	nodeConfig := Config{
 		BroadcastKey:      connectionCfg.BroadcastKey,

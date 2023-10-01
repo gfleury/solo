@@ -11,6 +11,7 @@ import (
 	"github.com/gfleury/solo/client/crypto/noise"
 	"github.com/gfleury/solo/client/protocol"
 	"github.com/gfleury/solo/client/vpn/stream_map"
+	"github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/mudler/water"
 )
@@ -151,6 +152,7 @@ func (v *VPNInterface) handlePacket(ctx context.Context, dstID peer.ID, packet P
 
 		// Stream ist tot
 		// v.logger.Debugf("Finish and remove noiseStream and data stream: %s %s", dstID, err)
+		soloStream.Stream.(network.Stream).Reset()
 		v.streamMap.Delete(streamKey)
 
 		return err
