@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"net"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -163,10 +162,6 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 
 	// Force holepunch to activate easily and faster after seen only once
 	identify.ActivationThresh = 1
-	if runtime.GOOS == "darwin" {
-		identify.ActivationThresh = 0
-		libp2pOpts = append(libp2pOpts, libp2p.ForceReachabilityPrivate())
-	}
 
 	nodeConfig := Config{
 		BroadcastKey:      connectionCfg.BroadcastKey,
