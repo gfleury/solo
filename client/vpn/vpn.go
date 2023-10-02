@@ -146,7 +146,7 @@ func (v *VPNService) dataStreamHandler() func(stream network.Stream) {
 			v.logger.Errorf("Failed to copy all data (copied only: %d) into network interface: %s", n, err)
 			stream.Reset()
 		}
-		v.logger.Debugf("Finish and remove noiseStream handler: %s", dstID)
+		v.logger.Debugf("Finish and remove noiseStream handler: %s", streamKey)
 
 		// Stream ist tot
 		v.vpnInterface.streamMap.Delete(streamKey)

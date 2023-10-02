@@ -52,5 +52,9 @@ func (p *AlleinStreamMap) Put(streamID string, stream *AlleinStream) {
 func (p *AlleinStreamMap) Delete(streamID string) {
 	p.Lock()
 	defer p.Unlock()
+	if s, found := p.Get(streamID); found {
+		s.NoiseStream = nil
+		s.Stream = nil
+	}
 	delete(p.streamMap, streamID)
 }
