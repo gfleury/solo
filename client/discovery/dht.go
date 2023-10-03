@@ -190,7 +190,7 @@ func (d *DHT) FindClosePeers(logger log.StandardLogger) func(ctx context.Context
 }
 
 func (d *DHT) announceAndConnect(l log.StandardLogger, ctx context.Context, host host.Host, rv string) error {
-	l.Debug("Announcing ourselves...")
+	l.Debugf("Announcing ourselves with addresses: %v", host.Addrs())
 	routingDiscovery := discovery.NewRoutingDiscovery(d.IpfsDHT)
 	routingDiscovery.Advertise(ctx, rv)
 

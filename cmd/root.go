@@ -57,7 +57,7 @@ func runMain(cmd *cobra.Command, args []string) {
 
 	ctx := context.Background()
 
-	go handleStopSignals()
+	go handleStopSignals(e)
 
 	err = e.Start(ctx)
 	if err != nil {

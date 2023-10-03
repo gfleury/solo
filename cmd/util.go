@@ -18,13 +18,19 @@ import (
 
 	"os/signal"
 	"syscall"
+
+	"github.com/gfleury/solo/client/node"
 )
 
-func handleStopSignals() {
+func handleStopSignals(node *node.Node) {
 	s := make(chan os.Signal, 10)
 	signal.Notify(s, os.Interrupt, syscall.SIGTERM)
 
 	for range s {
+		node.Host().Network().Close()
+		node.Host().ConnManager().Close()
+		node.Host().Close()
+
 		os.Exit(0)
 	}
 }
