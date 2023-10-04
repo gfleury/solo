@@ -15,9 +15,8 @@ export default function NewButton() {
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu>
-                    <Dropdown.Item href="#add-instagram-non-official" onClick={() => router.push("/accounts/add")}>Add Instagram (non-official)</Dropdown.Item>
-                    <Dropdown.Item href="#add-instagram-official" onClick={() => router.push(GetUrlAPI()+"/provider/Instagram")}>Add Instagram (official)</Dropdown.Item>
-                    <Dropdown.Item href="#add-youtube">Add Youtube</Dropdown.Item>
+                    <Dropdown.Item href="#add-network" onClick={() => router.push("/networks/add")}>Add Network</Dropdown.Item>
+                    <Dropdown.Item href="#add-node" onClick={() => router.push("/nodes/add")}>Add Node</Dropdown.Item>
                 </Dropdown.Menu>
             </Dropdown>
         </Nav>

@@ -12,8 +12,10 @@ package models
 type LinkedUser struct {
 	Model
 
+	NetworkID uint
+
 	UserID uint
 	User   *User `json:"user,omitempty"`
-	// account status
+	// Linked user permissions
 	Permissions string `json:"permissions,omitempty"`
 }

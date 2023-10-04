@@ -14,8 +14,7 @@ import { OneOrOtherBySize } from './utils'
 
 const navigation = [
   { name: 'Home', href: '/home' },
-  { name: 'Accounts', href: '/accounts' },
-  { name: 'Inbox', href: '/inbox' },
+  { name: 'Networks', href: '/networks' },
 ];
 
 function signOut() {
@@ -36,7 +35,7 @@ export default function OurNavbar({ user }: { user?: User }) {
           <Link
             href="/"
             className='followParent'>
-            snarrow
+            solo
           </Link>
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />

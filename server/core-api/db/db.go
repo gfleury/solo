@@ -28,7 +28,7 @@ func init() {
 	if os.Getenv("DEV") != "" || strings.Contains(flag.CommandLine.Name(), "debug") || strings.Contains(flag.CommandLine.Name(), "test") {
 		db, err = gorm.Open(sqlite.Open(TEST_DB), &gorm.Config{})
 	} else {
-		dsn := "postgres://main_kvyl_user:8JteWZjbrj5AuI1KGYhSPe5yK3zBfRrB@dpg-cj3mko59aq0e0q01bvr0-a/main_kvyl"
+		dsn := "postgres://postgres:mysecretpassword@localhost/core_api"
 		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	}
 	if err != nil {
@@ -36,7 +36,7 @@ func init() {
 	}
 
 	// Migrate the schema
-	err = db.AutoMigrate(&models.Node{}, &models.Network{}, &models.User{})
+	err = db.AutoMigrate(&models.Network{}, &models.Node{}, &models.LinkedUser{}, &models.User{})
 	if err != nil {
 		panic(err)
 	}

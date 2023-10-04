@@ -27,7 +27,7 @@ func main() {
 	router.Use(db.SetDBMiddleware)
 
 	log.Fatal(http.ListenAndServe(":8081", cors.New(cors.Options{
-		AllowedOrigins: []string{"https://oauth2.fleury.gg", "https://web.fleury.gg", "https://core-api.fleury.gg", "http://localhost:8080", "http://localhost:3000", "http://localhost:8081"},
+		AllowedOrigins: []string{"https://oauth.fleury.gg", "https://web.fleury.gg", "https://core-api.fleury.gg", "http://localhost:8080", "http://localhost:3000", "http://localhost:8081"},
 		AllowedMethods: []string{
 			http.MethodHead,
 			http.MethodGet,

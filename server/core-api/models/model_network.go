@@ -11,27 +11,29 @@ package models
 
 import (
 	"encoding/json"
-	"net"
 )
 
 type Network struct {
 	Model
 
+	Name string `json:"name"`
+
+	CIDR string `json:"cidr,omitempty"`
+
+	Nodes []Node `json:"nodes,omitempty"`
+
 	// Owner User ID
 	UserID uint
 	User   *User `json:"user,omitempty"`
+
 	// Users that are linked to this network
 	LinkedUsers []LinkedUser `json:"linkedUsers,omitempty"`
-
-	Name string `json:"name"`
-
-	CIDR net.IPNet `json:"cidr,omitempty"`
-
-	Nodes []Node `json:"nodes,omitempty"`
 }
 
 type Node struct {
 	Model
+
+	NetworkID uint
 
 	PeerID   string
 	Hostname string

@@ -30,7 +30,7 @@ import (
 var MY_LOCAL_URL = "http://localhost:8080"
 var WEB_LOCAL_URL = "http://localhost:3000"
 
-var MY_URL = "https://oauth2.fleury.gg"
+var MY_URL = "https://oauth.fleury.gg"
 var WEB_URL = "https://web.fleury.gg"
 
 func init() {
@@ -156,7 +156,7 @@ func main() {
 
 	log.Println("listening on localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", cors.New(cors.Options{
-		AllowedOrigins: []string{"https://oauth2.fleury.gg", "https://web.fleury.gg", "https://core-api.fleury.gg", "http://localhost:8080", "http://localhost:3000", "http://localhost:8081"},
+		AllowedOrigins: []string{"https://oauth.fleury.gg", "https://web.fleury.gg", "https://core-api.fleury.gg", "http://localhost:8080", "http://localhost:3000", "http://localhost:8081"},
 		AllowedMethods: []string{
 			http.MethodHead,
 			http.MethodGet,

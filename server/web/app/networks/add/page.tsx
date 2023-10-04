@@ -6,22 +6,22 @@ import Modal from 'react-bootstrap/Modal'
 import Form from 'react-bootstrap/Form'
 import { useSWRConfig } from 'swr'
 import { Post, Get, GetUrl } from '../../api-client'
-import { Account } from '../../api-client/models'
+import { Network } from '../../api-client/models'
 import { alertService } from '../../services/alerts'
 import { FormGroup, FormLabel } from 'react-bootstrap'
 
 export default function Add() {
     const { mutate } = useSWRConfig()
-    const addAccount = Post("/account")
+    const addNetwork = Post("/network")
     const providers = Get("/providers?type=loginpassword")
 
-    const accountObj = {
+    const networkObj = {
         name: "",
         login: "",
         password: "",
         provider: { name: "Instagram" }
     }
-    const [account, setAccount] = useState(accountObj)
+    const [network, setNetwork] = useState(networkObj)
 
     type FormControlElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     function onChangeSetObject(e: ChangeEvent<FormControlElement>) {
@@ -34,27 +34,27 @@ export default function Add() {
         } else {
             patchObject[property] = e.target.value
         }
-        setAccount(account => ({
-            ...account,
+        setNetwork(network => ({
+            ...network,
             ...patchObject
         }));
     }
 
     async function submit(e: MouseEvent<HTMLElement>) {
-        const accountCast: Account = account
+        const networkCast: Network = network
         // Currently name is the same as login
-        accountCast.name = accountCast.login
+        networkCast.name = networkCast.login
         // @ts-ignore
-        const data = await addAccount.trigger(accountCast)
+        const data = await addNetwork.trigger(networkCast)
         if (data.status === 201) {
             let resJson = data.json()
             // Clean state
-            setAccount(accountObj)
+            setNetwork(networkObj)
 
             setValidated(false)
-            return mutate(GetUrl("/accounts"))
+            return mutate(GetUrl("/networks"))
         } else {
-            alertService.error("Adding account failed with: ".concat(await data.text()), {})
+            alertService.error("Adding network failed with: ".concat(await data.text()), {})
         }
 
     }
@@ -76,7 +76,7 @@ export default function Add() {
     return (
         <>
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
-                <Form.Label closeButton>Add account</Form.Label>
+                <Form.Label closeButton>Add network</Form.Label>
                 <Form.Group>
                     <Form.Group className="mb-3" controlId="formLogin">
                         <Form.Label>Login</Form.Label>
@@ -96,8 +96,8 @@ export default function Add() {
                         <Form.Control type="text" placeholder="2FA" name="twofa" onChange={onChangeSetObject} required />
                     </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="formAccountType">
-                        <Form.Label>Account type</Form.Label>
+                    <Form.Group className="mb-3" controlId="formNetworkType">
+                        <Form.Label>Network type</Form.Label>
                         <Form.Select id="type" name="provider.name" onChange={onChangeSetObject} required>
                             {providers.data.map((item: any) => (
                                 <option key={item.ID}>{item.name}</option>

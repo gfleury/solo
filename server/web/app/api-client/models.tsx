@@ -1,81 +1,24 @@
 /**
  * 
  * @export
- * @interface Account
+ * @interface Network
  */
-export interface Account {
+export interface Network {
     /**
      * 
      * @type {number}
-     * @memberof Account
+     * @memberof Network
      */
     ID?: number;
     /**
      * 
      * @type {string}
-     * @memberof Account
+     * @memberof Network
      */
     name: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof Account
-     */
-    login: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof Account
-     */
-    password: string;
-    /**
-     * 
-     * @type {Provider}
-     * @memberof Account
-     */
-    provider: Provider;
-    /**
-     * 
-     * @type {Session}
-     * @memberof Account
-     */
-    session?: Session;
-    /**
-     * 
-     * @type {Array<Tag>}
-     * @memberof Account
-     */
-    tags?: Array<Tag>;
-    /**
-     * account status
-     * @type {string}
-     * @memberof Account
-     */
-    status?: Account.StatusEnum;
-    /**
-     * 
-     * @type {string}
-     * @memberof Account
-     */
-    avatar?: string;
-    twofa?: string;
+    cidr: string;
 }
 
-/**
- * @export
- * @namespace Account
- */
-export namespace Account {
-    /**
-     * @export
-     * @enum {string}
-     */
-    export enum StatusEnum {
-        Available = 'available',
-        Pending = 'pending',
-        Broken = 'broken'
-    }
-}
 /**
  * 
  * @export
@@ -89,7 +32,7 @@ export interface LinkedUser {
      */
     user?: User;
     /**
-     * account status
+     * network status
      * @type {string}
      * @memberof LinkedUser
      */
@@ -148,7 +91,7 @@ export interface Session {
      * @type {number}
      * @memberof Session
      */
-    accountID?: number;
+    networkID?: number;
     /**
      * 
      * @type {string}
@@ -230,11 +173,11 @@ export interface User {
      */
     userStatus?: number;
     /**
-     * Accounts that belong to user
-     * @type {Array<Account>}
+     * Networks that belong to user
+     * @type {Array<Network>}
      * @memberof User
      */
-    accounts?: Array<Account>;
+    networks?: Array<Network>;
     /**
      * Users that are linked to this user
      * @type {Array<LinkedUser>}
