@@ -141,6 +141,7 @@ func (v *VPNService) dataStreamHandler() func(stream network.Stream) {
 
 		v.logger.Debugf("New data stream inbound from: %s", streamKey)
 		v.vpnInterface.streamMap.New(streamKey, stream)
+
 		n, err := io.Copy(v.vpnInterface, stream)
 		if err != nil {
 			v.logger.Errorf("Failed to copy all data (copied only: %d) into network interface: %s", n, err)

@@ -41,5 +41,4 @@ func TestRendzvousNode(t *testing.T) {
 		panic(err)
 	}
 
-	select {}
 }
