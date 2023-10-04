@@ -1,0 +1,119 @@
+diff --git a/go/api_accounts.go b/go/api_accounts.go
+index e6e7b42..76f7271 100644
+--- a/go/api_accounts.go
++++ b/go/api_accounts.go
+@@ -11,31 +11,29 @@ package swagger
+ 
+ import (
+ 	"net/http"
+-
+-	"github.com/gfleury/solo/server/core-api/accounts/api"
+ )
+ 
+ func AddAccount(w http.ResponseWriter, r *http.Request) {
+ 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+-	api.AddAccount(w, r)
++	w.WriteHeader(http.StatusOK)
+ }
+ 
+ func DeleteAccount(w http.ResponseWriter, r *http.Request) {
+ 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+-	api.DeleteAccount(w, r)
++	w.WriteHeader(http.StatusOK)
+ }
+ 
+ func GetAccountById(w http.ResponseWriter, r *http.Request) {
+ 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+-	api.GetAccountById(w, r)
++	w.WriteHeader(http.StatusOK)
+ }
+ 
+ func GetAccounts(w http.ResponseWriter, r *http.Request) {
+ 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+-	api.GetAccounts(w, r)
++	w.WriteHeader(http.StatusOK)
+ }
+ 
+ func UpdateAccount(w http.ResponseWriter, r *http.Request) {
+ 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+-	api.UpdateAccount(w, r)
++	w.WriteHeader(http.StatusOK)
+ }
+diff --git a/go/model_account.go b/go/model_account.go
+index ea227e5..5eb2125 100644
+--- a/go/model_account.go
++++ b/go/model_account.go
+@@ -9,21 +9,19 @@
+  */
+ package swagger
+ 
+-import "gorm.io/gorm"
+-
+ type Account struct {
+-	gorm.Model
+-	UserID uint
+ 
+ 	Id int64 `json:"id,omitempty"`
+ 
+ 	Name string `json:"name"`
+ 
+-	CategoryID int
+-	Category   *Category `json:"category,omitempty"`
++	Login string `json:"login"`
++
++	Password string `json:"password"`
+ 
+-	Tags []Tag `json:"tags,omitempty" gorm:"many2many:user_languages"`
++	Provider *Provider `json:"provider"`
+ 
++	Tags []Tag `json:"tags,omitempty"`
+ 	// account status
+ 	Status string `json:"status,omitempty"`
+ }
+diff --git a/go/model_linked_user.go b/go/model_linked_user.go
+index 0572914..ddc18d3 100644
+--- a/go/model_linked_user.go
++++ b/go/model_linked_user.go
+@@ -10,8 +10,8 @@
+ package swagger
+ 
+ type LinkedUser struct {
+-	UserID uint
+-	User   *User `json:"user,omitempty"`
++
++	User *User `json:"user,omitempty"`
+ 	// account status
+ 	Permissions string `json:"permissions,omitempty"`
+ }
+diff --git a/go/model_tag.go b/go/model_tag.go
+index 655d61b..bce49a1 100644
+--- a/go/model_tag.go
++++ b/go/model_tag.go
+@@ -9,10 +9,8 @@
+  */
+ package swagger
+ 
+-import "gorm.io/gorm"
+-
+ type Tag struct {
+-	gorm.Model
++
+ 	Id int64 `json:"id,omitempty"`
+ 
+ 	Name string `json:"name,omitempty"`
+diff --git a/go/model_user.go b/go/model_user.go
+index 7c57a39..abcf186 100644
+--- a/go/model_user.go
++++ b/go/model_user.go
+@@ -9,10 +9,8 @@
+  */
+ package swagger
+ 
+-import "gorm.io/gorm"
+-
+ type User struct {
+-	gorm.Model
++
+ 	Id int64 `json:"id,omitempty"`
+ 
+ 	Username string `json:"username,omitempty"`
