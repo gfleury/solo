@@ -9,8 +9,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/netip"
 	"os"
 	"runtime"
+	"sort"
+	"strings"
 
 	"github.com/libp2p/go-libp2p/core/host"
 )
@@ -37,7 +40,8 @@ type Network struct {
 type NetworkNode struct {
 	Model `json:"-"`
 
-	NetworkID uint `json:"-"`
+	NetworkID uint    `json:"-"`
+	Network   Network `json:"-"`
 
 	PeerID    string `gorm:"uniqueIndex"`
 	Hostname  string
@@ -53,6 +57,48 @@ func NewNetwork(name, CIDR string) *Network {
 		Name: name,
 		CIDR: CIDR,
 	}
+}
+
+func (a *Network) NextFreeIP() string {
+	_, cidr, err := net.ParseCIDR(a.CIDR)
+	if err != nil {
+		return ""
+	}
+	if len(a.Nodes) == 0 {
+
+		ip := cidr.IP
+		ip[3] = uint8(1)
+
+		nextIpWithMask := net.IPNet{IP: ip, Mask: cidr.Mask}
+		return nextIpWithMask.String()
+	}
+
+	sort.Slice(a.Nodes, func(i, j int) bool {
+		iIP, _, err := net.ParseCIDR(a.Nodes[i].IP)
+		if err != nil {
+			return false
+		}
+		jIP, _, err := net.ParseCIDR(a.Nodes[j].IP)
+		if err != nil {
+			return false
+		}
+		return uint8(iIP[3]) > uint8(jIP[3])
+	})
+
+	lastNode := a.Nodes[len(a.Nodes)-1]
+
+	addr, err := netip.ParseAddr(strings.Split(lastNode.IP, "/")[0])
+	if err != nil {
+		return ""
+	}
+
+	ipAddr := addr.As4()
+	ip := net.IP(ipAddr[:])
+	ip[3] = uint8(ip[3]) + uint8(1)
+
+	nextIpWithMask := net.IPNet{IP: ip, Mask: cidr.Mask}
+
+	return nextIpWithMask.String()
 }
 
 func (a *Network) Json() ([]byte, error) {

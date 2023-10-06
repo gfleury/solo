@@ -6,9 +6,12 @@
 package api
 
 import (
+	"crypto/ed25519"
+	"encoding/base64"
 	"encoding/json"
 	"net/http"
 
+	"github.com/gfleury/solo/common"
 	"github.com/gfleury/solo/common/models"
 	"github.com/gfleury/solo/server/core-api/db"
 	"github.com/gfleury/solo/server/core-api/jwt"
@@ -143,7 +146,7 @@ func UpdateNode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	JsonReponse(&n, http.StatusCreated, w)
+	JsonResponse(&n, http.StatusCreated, w)
 }
 
 func NetworkAssignNodeFromRegistrationCode(w http.ResponseWriter, r *http.Request) {
@@ -175,7 +178,10 @@ func NetworkAssignNodeFromRegistrationCode(w http.ResponseWriter, r *http.Reques
 	}
 
 	networkNode := registration.Node
+	// Update node with new network ID that it belongs
+	// and next free ip from network
 	networkNode.NetworkID = network.ID
+	networkNode.IP = network.NextFreeIP()
 
 	// Save node with networkID
 	result = db_handler.Save(&networkNode)
@@ -192,4 +198,59 @@ func NetworkAssignNodeFromRegistrationCode(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+type ConnectionConfigurationRequest struct {
+	PeerID                  string
+	NodeAuthenticationToken string
+}
+
+type ConnectionConfigurationResponse struct {
+	ConnectionConfigToken string
+	IPAddress             string
+}
+
+func (c *ConnectionConfigurationResponse) Json() ([]byte, error) {
+	return json.Marshal(c)
+}
+
+func GetConnectionConfiguration(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var request ConnectionConfigurationRequest
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	node := models.NetworkNode{PeerID: request.PeerID}
+
+	db_handler := db.GetDB(r.Context())
+
+	result := db_handler.Preload(clause.Associations).Find(&node)
+	if result.Error != nil {
+		http.Error(w, result.Error.Error(), http.StatusBadRequest)
+		return
+	}
+
+	rawAuthentirationToken, err := base64.RawStdEncoding.DecodeString(request.NodeAuthenticationToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	pubKey := ed25519.PublicKey(node.PublicKey)
+	err = ed25519.VerifyWithOptions(pubKey, common.NodeAuthenticationTokenMessage(), rawAuthentirationToken, common.NodeAuthenticationTokenOptions)
+	if err != nil {
+		http.Error(w, "Node authentication token is invalid", http.StatusBadRequest)
+		return
+	}
+
+	response := ConnectionConfigurationResponse{
+		ConnectionConfigToken: node.Network.ConnectionConfigToken,
+		IPAddress:             "10.1.0.1/24",
+	}
+
+	JsonResponse(&response, http.StatusOK, w)
 }

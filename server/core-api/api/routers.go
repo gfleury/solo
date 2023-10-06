@@ -67,6 +67,13 @@ var p2pRoutes = Routes{
 		"/api/v1/node/register",
 		RegisterNode,
 	},
+
+	Route{
+		"GetConnectionConfiguration",
+		"POST",
+		"/api/v1/node/connnection_configuration",
+		GetConnectionConfiguration,
+	},
 }
 
 var routes = Routes{
