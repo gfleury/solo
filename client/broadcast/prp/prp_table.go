@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/gfleury/solo/client/broadcast/protocol"
-	"github.com/gfleury/solo/client/types"
+	"github.com/gfleury/solo/common/models"
 )
 
 type PRPEntry struct {
 	sync.Mutex
 
-	Machine  *types.Machine
+	Machine  *models.NetworkNode
 	LastSeen time.Time
 }
 
@@ -39,7 +39,7 @@ func (e *PRPEntry) UpdateLastSeen() {
 }
 
 // Returns Machine, isFound and if it was Queried Less Than 5 Seconds Ago
-func (t *PRPTableType) Lookup(ip string) (*types.Machine, bool, bool) {
+func (t *PRPTableType) Lookup(ip string) (*models.NetworkNode, bool, bool) {
 	t.Lock()
 	defer t.Unlock()
 	if e, ok := t.Table.Get(ip); ok {
@@ -55,7 +55,7 @@ func (t *PRPTableType) Lookup(ip string) (*types.Machine, bool, bool) {
 	return nil, false, false
 }
 
-func (t *PRPTableType) Myself() (string, *types.Machine) {
+func (t *PRPTableType) Myself() (string, *models.NetworkNode) {
 	t.Lock()
 	defer t.Unlock()
 	if e, ok := t.Table.Get(t.localIP); ok {
@@ -65,13 +65,13 @@ func (t *PRPTableType) Myself() (string, *types.Machine) {
 	return t.localIP, nil
 }
 
-func (t *PRPTableType) insertEntry(ip string, m *types.Machine) {
+func (t *PRPTableType) insertEntry(ip string, m *models.NetworkNode) {
 	t.Lock()
 	defer t.Unlock()
 	t.Table.Put(ip, &PRPEntry{Machine: m, LastSeen: time.Now()})
 }
 
-func (t *PRPTableType) InsertMyselfEntry(m *types.Machine) {
+func (t *PRPTableType) InsertMyselfEntry(m *models.NetworkNode) {
 	t.localIP = m.IP
 	t.insertEntry(t.localIP, m)
 }

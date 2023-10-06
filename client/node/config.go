@@ -16,16 +16,20 @@ package node
 
 import (
 	"context"
+	"encoding/base64"
 
 	"github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
 
 	"github.com/gfleury/solo/client/broadcast"
 	"github.com/gfleury/solo/client/broadcast/metapacket"
 	"github.com/gfleury/solo/client/crypto"
 	discovery "github.com/gfleury/solo/client/discovery"
+	"github.com/gfleury/solo/common/models"
 )
 
 // Config is the node configuration
@@ -64,4 +68,34 @@ type DiscoveryService interface {
 
 type NetworkService interface {
 	Run(context.Context, log.StandardLogger, host.Host, broadcast.Broadcaster) error
+}
+
+func FromBase64(enableDHT bool, bb string, d *discovery.DHT) func(cfg *Config) error {
+	if d == nil {
+		d = discovery.NewDHT()
+	}
+	return func(cfg *Config) error {
+		if len(cfg.DiscoveryService) == 0 {
+			cfg.DiscoveryService = append(cfg.DiscoveryService, d)
+		}
+		d.DiscoveryPeers = cfg.DiscoveryPeers
+		if len(bb) == 0 {
+			return nil
+		}
+		configDec, err := base64.StdEncoding.DecodeString(bb)
+		if err != nil {
+			return err
+		}
+		t := models.YAMLConnectionConfig{}
+
+		if err := yaml.Unmarshal(configDec, &t); err != nil {
+			return errors.Wrap(err, "parsing yaml")
+		}
+
+		// Old copy()
+		d.OTPKey = t.DiscoveryKey
+		cfg.BroadcastKey = t.BroadcastKey
+
+		return nil
+	}
 }

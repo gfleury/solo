@@ -5,8 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"os"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -14,7 +12,7 @@ import (
 	"github.com/gfleury/solo/client/broadcast/metapacket"
 	"github.com/gfleury/solo/client/broadcast/prp"
 	"github.com/gfleury/solo/client/crypto"
-	"github.com/gfleury/solo/client/types"
+	"github.com/gfleury/solo/common/models"
 	"github.com/ipfs/go-log"
 
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
@@ -23,7 +21,7 @@ import (
 )
 
 type Broadcaster interface {
-	Lookup(dstIP string) (*types.Machine, bool, bool)
+	Lookup(dstIP string) (*models.NetworkNode, bool, bool)
 	Start(ctx context.Context, host host.Host, myIP string) error
 	SendPacket(ctx context.Context, packet *metapacket.MetaPacket) error
 	AnnounceMyself(ctx context.Context) error
@@ -61,7 +59,7 @@ func NewBroadcaster(
 		PRPTable: prp.NewPRPTable(),
 	}
 }
-func (m *DefaultBroadcaster) Lookup(dstIP string) (*types.Machine, bool, bool) {
+func (m *DefaultBroadcaster) Lookup(dstIP string) (*models.NetworkNode, bool, bool) {
 	return m.PRPTable.Lookup(dstIP)
 }
 
@@ -101,7 +99,7 @@ func (m *DefaultBroadcaster) Start(ctx context.Context, host host.Host, myIP str
 	var err error
 
 	// Insert myself on the PRPTable
-	myselfMachine := newMachine(host, myIP)
+	myselfMachine := models.NewLocalNode(host, myIP)
 	m.PRPTable.InsertMyselfEntry(&myselfMachine)
 	m.selfID = host.ID()
 
@@ -253,17 +251,4 @@ func (m *DefaultBroadcaster) PRPRequest(ctx context.Context, unknownDstIP string
 
 func (m *DefaultBroadcaster) AnnounceMyself(ctx context.Context) error {
 	return m.SendPacket(ctx, metapacket.NewFromPayload(m.PRPTable.PRPReplyMyself(true)))
-}
-
-func newMachine(host host.Host, IP string) types.Machine {
-	hostname, _ := os.Hostname()
-
-	return types.Machine{
-		PeerID:   host.ID().String(),
-		Hostname: hostname,
-		OS:       runtime.GOOS,
-		Arch:     runtime.GOARCH,
-		Version:  "0.0.1",
-		IP:       IP,
-	}
 }

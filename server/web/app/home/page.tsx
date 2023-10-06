@@ -10,7 +10,7 @@ export default function Home() {
     return (
         <Stack gap={2}>
             <div className="p-2">
-                Hellow {session?.user?.firstName}!
+                Hellow {session?.user?.email}!
             </div>
             <div className="p-2">
                 <Graph />

@@ -8,7 +8,7 @@ import (
 	"github.com/gfleury/solo/client/crypto"
 	"github.com/gfleury/solo/client/discovery"
 	"github.com/gfleury/solo/client/logger"
-	rendezvous "github.com/gfleury/solo/rendezvous/node"
+	rendezvous "github.com/gfleury/solo/server/core-api/rendezvous"
 
 	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"

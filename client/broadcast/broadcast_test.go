@@ -12,8 +12,8 @@ import (
 	"github.com/gfleury/solo/client/crypto"
 	"github.com/gfleury/solo/client/discovery"
 	"github.com/gfleury/solo/client/logger"
-	"github.com/gfleury/solo/client/types"
 	"github.com/gfleury/solo/client/vpn"
+	"github.com/gfleury/solo/common/models"
 	"github.com/ipfs/go-log"
 	"github.com/stretchr/testify/suite"
 )
@@ -70,7 +70,7 @@ func (s *BroadcastTestSuite) TestBroadcastPubSubOTP() {
 			case <-ctx.Done():
 				return
 			default:
-				b1.SendPacket(ctx, metapacket.NewMetaPacket(protocol.Type_PRP, &prp.PRPacket{PRPType: prp.PRPReply, IP: "10.2.3.4", Machine: types.Machine{PeerID: h1.ID().String()}}))
+				b1.SendPacket(ctx, metapacket.NewMetaPacket(protocol.Type_PRP, &prp.PRPacket{PRPType: prp.PRPReply, IP: "10.2.3.4", Machine: models.NetworkNode{PeerID: h1.ID().String()}}))
 				b2.SendPacket(ctx, metapacket.NewFromPayload(prp.NewPRPRequestPacket("10.2.3.1")))
 				b1.SendPacket(ctx, metapacket.NewFromPayload(prp.NewPRPRequestPacket("10.2.3.2")))
 				time.Sleep(2 * time.Second)
@@ -133,7 +133,7 @@ func (s *BroadcastTestSuite) TestBroadcastStreamSeal() {
 			case <-ctx.Done():
 				return
 			default:
-				b1.SendPacket(ctx, metapacket.NewMetaPacket(protocol.Type_PRP, &prp.PRPacket{PRPType: prp.PRPReply, IP: "10.2.3.4", Machine: types.Machine{PeerID: h1.ID().String()}}))
+				b1.SendPacket(ctx, metapacket.NewMetaPacket(protocol.Type_PRP, &prp.PRPacket{PRPType: prp.PRPReply, IP: "10.2.3.4", Machine: models.NetworkNode{PeerID: h1.ID().String()}}))
 				b2.SendPacket(ctx, metapacket.NewFromPayload(prp.NewPRPRequestPacket("10.2.3.1")))
 				b1.SendPacket(ctx, metapacket.NewFromPayload(prp.NewPRPRequestPacket("10.2.3.2")))
 				time.Sleep(2 * time.Second)

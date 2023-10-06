@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/gfleury/solo/client/broadcast/protocol"
-	"github.com/gfleury/solo/client/types"
+	"github.com/gfleury/solo/common/models"
 	"github.com/ipfs/go-log"
 )
 
@@ -17,7 +17,7 @@ const (
 
 type PRPacket struct {
 	PRPType PRPPacketType
-	Machine types.Machine
+	Machine models.NetworkNode
 	IP      string
 }
 

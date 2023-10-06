@@ -1,6 +1,5 @@
 'use client'
 
-import { redirect } from 'next/navigation'
 import useSWR, { SWRResponse } from 'swr'
 import useSWRMutation from 'swr/mutation'
 

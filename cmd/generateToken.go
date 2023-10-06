@@ -6,7 +6,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/gfleury/solo/client/node"
+	"github.com/gfleury/solo/common/models"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +16,7 @@ var generateTokenCmd = &cobra.Command{
 	Short: "Generate a VPN token to use",
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
-		newConfig := node.GenerateNewConnectionData()
+		newConfig := models.GenerateNewConnectionData()
 		fmt.Println(newConfig.Base64())
 	},
 }

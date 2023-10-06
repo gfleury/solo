@@ -40,6 +40,7 @@ import (
 	"github.com/gfleury/solo/client/logger"
 	"github.com/gfleury/solo/client/utils"
 	"github.com/gfleury/solo/client/vpn"
+	"github.com/gfleury/solo/common/models"
 )
 
 type Node struct {
@@ -80,7 +81,7 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 		}
 	}
 
-	connectionCfg, err := YAMLConnectionConfigFromToken(cliConfig.Token)
+	connectionCfg, err := models.YAMLConnectionConfigFromToken(cliConfig.Token)
 	if err != nil {
 		return nil, err
 	}

@@ -13,7 +13,7 @@ import (
 	"github.com/gfleury/solo/client/crypto"
 	"github.com/gfleury/solo/client/discovery"
 	"github.com/gfleury/solo/client/protocol"
-	"github.com/gfleury/solo/client/types"
+	"github.com/gfleury/solo/common/models"
 	"github.com/ipfs/go-log"
 
 	"github.com/libp2p/go-libp2p/core/host"
@@ -52,7 +52,7 @@ func NewStreamBroadcaster(
 		discoveryPeersIDs: discoveryPeersIDs,
 	}
 }
-func (m *StreamBroadcaster) Lookup(dstIP string) (*types.Machine, bool, bool) {
+func (m *StreamBroadcaster) Lookup(dstIP string) (*models.NetworkNode, bool, bool) {
 	return m.PRPTable.Lookup(dstIP)
 }
 
@@ -174,7 +174,7 @@ func (m *StreamBroadcaster) Start(ctx context.Context, host host.Host, myIP stri
 	defer m.Unlock()
 
 	// Insert myself on the PRPTable
-	myselfMachine := newMachine(host, myIP)
+	myselfMachine := models.NewLocalNode(host, myIP)
 	m.PRPTable.InsertMyselfEntry(&myselfMachine)
 	m.selfHost = host
 

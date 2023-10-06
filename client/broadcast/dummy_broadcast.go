@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/gfleury/solo/client/broadcast/metapacket"
-	"github.com/gfleury/solo/client/types"
+	"github.com/gfleury/solo/common/models"
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/peer"
 )
@@ -19,9 +19,9 @@ func NewDummyBroadcast() *DummyBroadcast {
 	}
 }
 
-func (b *DummyBroadcast) Lookup(dstIP string) (*types.Machine, bool, bool) {
+func (b *DummyBroadcast) Lookup(dstIP string) (*models.NetworkNode, bool, bool) {
 	if peer, found := b.table[dstIP]; found {
-		return &types.Machine{PeerID: peer.String(), IP: dstIP, OS: "linux"}, found, false
+		return &models.NetworkNode{PeerID: peer.String(), IP: dstIP, OS: "linux"}, found, false
 	}
 	return nil, false, false
 }

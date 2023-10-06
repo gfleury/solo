@@ -12,9 +12,9 @@ import (
 	"github.com/gfleury/solo/client/config"
 	"github.com/gfleury/solo/client/logger"
 	"github.com/gfleury/solo/client/node"
-	"github.com/gfleury/solo/client/types"
 	"github.com/gfleury/solo/cmd"
-	rendezvous "github.com/gfleury/solo/rendezvous/node"
+	"github.com/gfleury/solo/common/models"
+	rendezvous "github.com/gfleury/solo/server/core-api/rendezvous"
 	"github.com/ipfs/go-log"
 	"github.com/stretchr/testify/suite"
 )
@@ -31,7 +31,7 @@ func TestNodeTestSuite(t *testing.T) {
 
 func (s *NodeTestSuite) SetupTest() {
 	// Trigger key rotation on a low frequency to test everything works in between
-	s.token = node.GenerateNewConnectionData(120).Base64()
+	s.token = models.GenerateNewConnectionData(120).Base64()
 
 	s.l = logger.New(log.LevelDebug)
 
@@ -82,7 +82,7 @@ func (s *NodeTestSuite) TestNodeDiscoveryBasic() {
 			case <-ctx.Done():
 				return
 			default:
-				e.Broadcaster.SendPacket(ctx, metapacket.NewMetaPacket(protocol.Type_PRP, &prp.PRPacket{PRPType: prp.PRPReply, IP: "10.2.3.4", Machine: types.Machine{PeerID: e.Host().ID().String()}}))
+				e.Broadcaster.SendPacket(ctx, metapacket.NewMetaPacket(protocol.Type_PRP, &prp.PRPacket{PRPType: prp.PRPReply, IP: "10.2.3.4", Machine: models.NetworkNode{PeerID: e.Host().ID().String()}}))
 				e2.Broadcaster.SendPacket(ctx, metapacket.NewFromPayload(prp.NewPRPRequestPacket("10.2.3.1")))
 				e.Broadcaster.SendPacket(ctx, metapacket.NewFromPayload(prp.NewPRPRequestPacket("10.2.3.2")))
 				time.Sleep(2 * time.Second)
@@ -111,7 +111,7 @@ func (s *NodeTestSuite) TestNodeDiscoveryBasic() {
 }
 
 func (s *NodeTestSuite) TestShortIntervalOTP() {
-	token := node.GenerateNewConnectionData(120).Base64()
+	token := models.GenerateNewConnectionData(120).Base64()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

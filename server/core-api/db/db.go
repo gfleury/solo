@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gfleury/solo/server/core-api/models"
+	"github.com/gfleury/solo/common/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -36,7 +36,7 @@ func init() {
 	}
 
 	// Migrate the schema
-	err = db.AutoMigrate(&models.Network{}, &models.Node{}, &models.LinkedUser{}, &models.User{})
+	err = db.AutoMigrate(&models.Network{}, &models.NetworkNode{}, &models.LinkedUser{}, &models.User{}, &models.RegistrationRequest{})
 	if err != nil {
 		panic(err)
 	}
