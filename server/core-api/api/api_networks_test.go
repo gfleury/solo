@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -68,7 +67,7 @@ func (s *S) SetUpSuite(c *check.C) {
 }
 
 func (s *S) TearDownSuite(c *check.C) {
-	defer os.Remove(db.TEST_DB)
+	defer db.DestroyTestPostgresContainer(context.Background())
 }
 
 func (s *S) TestAddNetwork(c *check.C) {

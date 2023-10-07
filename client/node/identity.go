@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/mitchellh/go-homedir"
 )
@@ -30,15 +29,14 @@ func init() {
 type Identity struct {
 	Name       string
 	PrivateKey crypto.PrivKey
-	Logger     log.StandardLogger
 }
 
-func NewIdentity(logger log.StandardLogger) *Identity {
-	return NewIdentityWithName(logger, "identity")
+func NewIdentity() *Identity {
+	return NewIdentityWithName("identity")
 }
 
-func NewIdentityWithName(logger log.StandardLogger, name string) *Identity {
-	i := &Identity{Name: name, Logger: logger}
+func NewIdentityWithName(name string) *Identity {
+	i := &Identity{Name: name}
 	return i
 }
 
@@ -47,16 +45,11 @@ func (i *Identity) LoadOrGeneratePrivateKey(seed int64) (crypto.PrivKey, error) 
 	keyFile := filepath.Join(IDENTITY_STORE_DIR, i.Name)
 	dat, err := os.ReadFile(keyFile)
 	if err == nil && len(dat) > 0 {
-		i.Logger.Info("Reading key from", keyFile)
-
 		i.PrivateKey, err = crypto.UnmarshalPrivateKey(dat)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		// generate, write
-		i.Logger.Info("Generating private key and saving it locally for later use in", keyFile)
-
 		i.PrivateKey, err = genPrivKey(0)
 		if err != nil {
 			return nil, err

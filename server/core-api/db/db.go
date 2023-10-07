@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/gfleury/solo/common/models"
+	"github.com/testcontainers/testcontainers-go"
+	testpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -20,17 +22,42 @@ var DB DBCtx = "DB"
 
 var db *gorm.DB
 
-var TEST_DB = "test.db"
+var POSTGRESCONTAINER *testpostgres.PostgresContainer
+
+func DestroyTestPostgresContainer(ctx context.Context) {
+	if err := POSTGRESCONTAINER.Terminate(ctx); err != nil {
+		panic(err)
+	}
+}
 
 func init() {
 	var err error
+	var dsn string
 
 	if os.Getenv("DEV") != "" || strings.Contains(flag.CommandLine.Name(), "debug") || strings.Contains(flag.CommandLine.Name(), "test") {
-		db, err = gorm.Open(sqlite.Open(TEST_DB), &gorm.Config{})
+		ctx := context.Background()
+		POSTGRESCONTAINER, err = testpostgres.RunContainer(ctx,
+			testcontainers.WithImage("postgres"),
+			testpostgres.WithDatabase("core_api"),
+			testpostgres.WithUsername("postgres"),
+			testpostgres.WithPassword("mysecretpassword"),
+			testcontainers.WithWaitStrategy(
+				wait.ForLog("database system is ready to accept connections").
+					WithOccurrence(2).
+					WithStartupTimeout(5*time.Second)),
+		)
+		if err != nil {
+			panic(err)
+		}
+
+		dsn, err = POSTGRESCONTAINER.ConnectionString(ctx, "")
+		if err != nil {
+			panic(err)
+		}
 	} else {
-		dsn := "postgres://postgres:mysecretpassword@localhost/core_api"
-		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		dsn = "postgres://postgres:mysecretpassword@localhost/core_api"
 	}
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}

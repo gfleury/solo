@@ -6,6 +6,8 @@
 package models
 
 import (
+	"crypto/ed25519"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -38,10 +40,10 @@ type Network struct {
 }
 
 type NetworkNode struct {
-	Model `json:"-"`
-
-	NetworkID uint    `json:"-"`
-	Network   Network `json:"-"`
+	Model     `json:"-"`
+	NetworkID *uint    `json:"-"`
+	Network   *Network `json:"-"`
+	Actived   bool     `json:"-"`
 
 	PeerID    string `gorm:"uniqueIndex"`
 	Hostname  string
@@ -49,7 +51,7 @@ type NetworkNode struct {
 	Arch      string
 	IP        string
 	Version   string
-	PublicKey []byte
+	PublicKey string
 }
 
 func NewNetwork(name, CIDR string) *Network {
@@ -118,7 +120,7 @@ func (a *NetworkNode) Json() ([]byte, error) {
 }
 
 func (a *NetworkNode) Valid() error {
-	if a.Arch == "" || a.IP == "" || a.OS == "" ||
+	if a.Arch == "" || a.IP != "" || a.OS == "" ||
 		a.PeerID == "" || a.Hostname == "" || a.Version == "" {
 		return fmt.Errorf("node is invalid")
 	}
@@ -128,7 +130,11 @@ func (a *NetworkNode) Valid() error {
 func NewLocalNode(host host.Host, IP string) NetworkNode {
 	hostname, _ := os.Hostname()
 
-	pubKey, _ := host.Peerstore().PubKey(host.ID()).Raw()
+	// Extract PubKey from private Key
+	rawPrivKey, _ := host.Peerstore().PrivKey(host.ID()).Raw()
+	privKey := ed25519.PrivateKey(rawPrivKey)
+	pubKey := privKey.Public().(ed25519.PublicKey)
+
 	return NetworkNode{
 		PeerID:    host.ID().String(),
 		Hostname:  hostname,
@@ -136,6 +142,6 @@ func NewLocalNode(host host.Host, IP string) NetworkNode {
 		Arch:      runtime.GOARCH,
 		Version:   "0.0.1",
 		IP:        IP,
-		PublicKey: pubKey,
+		PublicKey: base64.RawStdEncoding.EncodeToString(pubKey),
 	}
 }

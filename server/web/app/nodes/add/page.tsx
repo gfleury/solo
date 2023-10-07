@@ -3,50 +3,47 @@
 import { ChangeEvent, FormEvent, MouseEvent, useState } from 'react'
 import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
-import { useSWRConfig } from 'swr'
-import { Post, GetUrl } from '../../api-client'
+import { Put, Get } from '../../api-client'
 import { Network } from '../../api-client/models'
 import { alertService } from '../../services/alerts'
 import { useRouter } from 'next/navigation';
 
 export default function Add() {
     const router = useRouter()
-    const { mutate } = useSWRConfig()
-    const addNetwork = Post("/network")
+    const registerNode = Put("/network")
+    const networks = Get("/networks")
 
-    const networkObj = {
-        name: "",
-        cidr: "",
-        user: {},
-        linkedusers: [],
+    const activationObj = {
+        code: "",
+        networkID: "0",
     }
-    const [network, setNetwork] = useState(networkObj)
+    const [activation, setActivation] = useState(activationObj)
 
     type FormControlElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     function onChangeSetObject(e: ChangeEvent<FormControlElement>) {
         const patchObject: any = {}
         const property = e.target.name
         patchObject[property] = e.target.value
-        setNetwork(network => ({
-            ...network,
+        setActivation(activation => ({
+            ...activation,
             ...patchObject
         }));
+        console.log(activation)
     }
 
     async function submit(e: MouseEvent<HTMLElement>) {
-        const networkCast: Network = network
-        console.log(networkCast)
+        console.log(activation)
         // @ts-ignore
-        const data = await addNetwork.trigger(networkCast)
-        if (data.status === 201) {
+        const data = await registerNode.trigger(`/${activation.networkID}/${activation.code}`)
+        if (data.status === 200) {
             let resJson = data.json()
             // Clean state
-            setNetwork(networkObj)
+            setActivation(activationObj)
 
             setValidated(true)
             return router.push("/networks")
         } else {
-            alertService.error("Adding network failed with: ".concat(await data.text()), {})
+            alertService.error("Adding node failed with: ".concat(await data.text()), {})
         }
     }
 
@@ -58,22 +55,29 @@ export default function Add() {
         event.stopPropagation();
     };
 
+    if (networks.isLoading) return (<></>)
+    
     return (
         <>
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
-                <Form.Label>Add network</Form.Label>
+                <Form.Label>Register Node</Form.Label>
                 <Form.Group>
                     <Form.Group className="mb-3" controlId="formName">
-                        <Form.Label>Name</Form.Label>
-                        <Form.Control type="name" placeholder="Network name, eg: Dummy Network" name="name" onChange={onChangeSetObject} required />
+                        <Form.Label>Activation code</Form.Label>
+                        <Form.Control type="name" placeholder="Activation code from cli" name="code" onChange={onChangeSetObject} required />
                         <Form.Text className="text-muted">
-                            The network name, this is just a reference for you.
+                            The code you got when you ran `$ solo register`.
                         </Form.Text>
                     </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="formCIDR">
-                        <Form.Label>Network CIDR</Form.Label>
-                        <Form.Control type="networkaddress" placeholder="Network CIDR, eg: 10.1.0.0/24" name="cidr" onChange={onChangeSetObject} required />
+                    <Form.Group className="mb-3" controlId="formNetwork">
+                        <Form.Label>Network</Form.Label>
+                        <Form.Select id="type" name="networkID" onChange={onChangeSetObject} required>
+                            <option key="0" value="0">Choose a network to register the node</option>
+                            {networks.data.map((item: any) => (
+                                <option key={item.ID} value={item.ID}>{item.name}</option>
+                            ))}
+                        </Form.Select>
                     </Form.Group>
                 </Form.Group>
                 <Form.Group>
@@ -81,7 +85,7 @@ export default function Add() {
                         Cancel
                     </Button>&nbsp;
                     <Button variant="primary" type="submit" onClick={submit}>
-                        Save Changes
+                        Register
                     </Button>
                 </Form.Group>
             </Form>

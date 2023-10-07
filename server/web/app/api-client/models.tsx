@@ -22,6 +22,7 @@ export interface Network {
     ID?: number;
     name: string;
     cidr: string;
+    connection_config: string;
     nodes?: Array<Node>;
     user: User;
     linkedusers: Array<LinkedUser>;

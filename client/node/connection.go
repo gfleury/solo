@@ -89,6 +89,8 @@ func (e *Node) BlockSubnet(cidr string) error {
 }
 
 func (e *Node) genHost(ctx context.Context) (host.Host, error) {
+	e.config.Logger.Debug("Generating host data")
+
 	opts := e.config.Options
 
 	cg, err := conngater.NewBasicConnectionGater(nil)
@@ -105,8 +107,9 @@ func (e *Node) genHost(ctx context.Context) (host.Host, error) {
 	e.BlockSubnet("127.0.0.0/8")
 
 	if !e.config.RandomIdentity {
+		e.config.Logger.Info("Using persistent node Identification")
 		// generate Identity privkey if its not already persisted
-		identity := NewIdentity(e.config.Logger)
+		identity := NewIdentity()
 
 		privateKey, err := identity.LoadOrGeneratePrivateKey(0)
 		if err != nil {

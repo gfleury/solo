@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -40,6 +41,7 @@ import (
 	"github.com/gfleury/solo/client/logger"
 	"github.com/gfleury/solo/client/utils"
 	"github.com/gfleury/solo/client/vpn"
+	"github.com/gfleury/solo/common"
 	"github.com/gfleury/solo/common/models"
 )
 
@@ -81,11 +83,6 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 		}
 	}
 
-	connectionCfg, err := models.YAMLConnectionConfigFromToken(cliConfig.Token)
-	if err != nil {
-		return nil, err
-	}
-
 	if cliConfig.PublicDiscoveryPeers {
 		cliConfig.DiscoveryPeers = []string{}
 		for _, peer := range dht.DefaultBootstrapPeers {
@@ -99,7 +96,7 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 	dhtOpts := []dht.Option{}
 	dhtService := discovery.NewDHT(dhtOpts...)
 	dhtService.DiscoveryInterval = time.Duration(cliConfig.DiscoveryInterval) * time.Second
-	dhtService.OTPKey = connectionCfg.DiscoveryKey
+	// dhtService.OTPKey = connectionCfg.DiscoveryKey
 	dhtService.DiscoveryPeers = discoveryPeers
 
 	// Configure VPN
@@ -108,7 +105,7 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 		InterfaceName:    cliConfig.InterfaceName,
 		InterfaceAddress: cliConfig.InterfaceAddress,
 		CreateInterface:  cliConfig.CreateInterface,
-		PreSharedKey:     connectionCfg.VPNPreSharedKey,
+		// PreSharedKey:     connectionCfg.VPNPreSharedKey,
 	})
 
 	// Configure LibP2P
@@ -165,19 +162,21 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 	identify.ActivationThresh = 1
 
 	nodeConfig := Config{
-		BroadcastKey:      connectionCfg.BroadcastKey,
-		ListenAddresses:   []discovery.AddrList{},
-		RandomIdentity:    cliConfig.RandomIdentity,
-		RandomPort:        cliConfig.RandomPort,
-		DiscoveryService:  []DiscoveryService{dhtService},
-		NetworkServices:   []NetworkService{vpnService},
-		Logger:            logger,
-		InterfaceAddress:  cliConfig.InterfaceAddress,
-		InterfaceMTU:      cliConfig.InterfaceMTU,
-		AdditionalOptions: []libp2p.Option{},
-		Options:           libp2pOpts,
-		DiscoveryPeers:    discoveryPeers,
-		Sealer:            &crypto.DefaultSealer{},
+		// BroadcastKey:      connectionCfg.BroadcastKey,
+		ListenAddresses:       []discovery.AddrList{},
+		RandomIdentity:        cliConfig.RandomIdentity,
+		RandomPort:            cliConfig.RandomPort,
+		DiscoveryService:      []DiscoveryService{dhtService},
+		NetworkServices:       []NetworkService{vpnService},
+		Logger:                logger,
+		InterfaceAddress:      cliConfig.InterfaceAddress,
+		InterfaceMTU:          cliConfig.InterfaceMTU,
+		AdditionalOptions:     []libp2p.Option{},
+		Options:               libp2pOpts,
+		DiscoveryPeers:        discoveryPeers,
+		Sealer:                &crypto.DefaultSealer{},
+		PublicDiscoveryPeers:  cliConfig.PublicDiscoveryPeers,
+		ConnectionConfigToken: cliConfig.Token,
 	}
 
 	return &Node{
@@ -185,13 +184,126 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 	}, nil
 }
 
+func (e *Node) Register(ctx context.Context) error {
+	var err error
+
+	// Startup libp2p network
+	e.host, err = e.genHost(ctx)
+	if err != nil {
+		e.config.Logger.Error(err.Error())
+		return err
+	}
+
+	e.config.Logger.Info("Node ID:", e.host.ID())
+	e.config.Logger.Info("Node Addresses:", e.host.Addrs())
+
+	peerInfo, err := peer.AddrInfoFromP2pAddr(e.config.DiscoveryPeers[0])
+	if err != nil {
+		e.config.Logger.Error(err.Error())
+		return err
+	}
+
+	err = e.host.Connect(ctx, *peerInfo)
+	if err != nil {
+		e.config.Logger.Error(err.Error())
+		return err
+	}
+
+	client := common.GetSoloAPIP2PClient(peerInfo.ID, e.host)
+
+	code, err := client.RegisterNode(models.NewLocalNode(e.host, ""))
+	if err != nil {
+		e.config.Logger.Error(err.Error())
+		return err
+	}
+
+	fmt.Println("Go to the web interface and enter the code", code)
+
+	return nil
+}
+
+func (e *Node) configurationDiscovery(ctx context.Context) error {
+	var connectionCfg *models.YAMLConnectionConfig
+	var err error
+
+	if e.config.PublicDiscoveryPeers {
+		connectionCfg, err = models.YAMLConnectionConfigFromToken(e.config.ConnectionConfigToken)
+		if err != nil {
+			return err
+		}
+	} else {
+	OUT:
+		for {
+			for _, peerID := range e.host.Peerstore().PeersWithKeys() {
+				if peerID == e.host.ID() {
+					// Skip ourselves
+					continue
+				}
+				client := common.GetSoloAPIP2PClient(peerID, e.host)
+
+				cfg, statusCode, err := client.GetNodeNetworkConfiguration()
+				if err != nil {
+					switch statusCode {
+					case http.StatusNotFound:
+						return fmt.Errorf("node not found, register the node first: %s", err)
+					case http.StatusFailedDependency:
+						e.config.Logger.Errorf("node is not activated yet, go to interface and enter code")
+						time.Sleep(10 * time.Second)
+						continue
+					default:
+						e.config.Logger.Errorf("failed to discovery configuration from: %s with %s", peerID, err)
+						time.Sleep(10 * time.Second)
+						continue
+					}
+				}
+				e.config.InterfaceAddress = cfg.InterfaceAddress
+				connectionCfg, err = models.YAMLConnectionConfigFromToken(cfg.ConnectionConfigToken)
+				if err != nil {
+					return err
+				}
+				break OUT
+			}
+		}
+
+	}
+
+	// Fill last configuration items from Connection Token
+	e.config.DiscoveryService[0].(*discovery.DHT).OTPKeyReceiver <- connectionCfg.DiscoveryKey
+	e.config.NetworkServices[0].(*vpn.VPNService).Config.PreSharedKey = connectionCfg.VPNPreSharedKey
+	e.config.BroadcastKey = connectionCfg.BroadcastKey
+
+	return nil
+}
+
 // Start joins the node over the p2p network
 func (e *Node) Start(ctx context.Context) error {
+	var err error
 
 	e.config.Logger.Info("Starting Solo P2P network")
 
 	// Startup libp2p network
-	err := e.startNetwork(ctx)
+	e.host, err = e.genHost(ctx)
+	if err != nil {
+		e.config.Logger.Error(err.Error())
+		return err
+	}
+
+	e.config.Logger.Info("Node ID:", e.host.ID())
+	e.config.Logger.Info("Node Addresses:", e.host.Addrs())
+
+	// Startup discovery
+	err = e.startDiscovery(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = e.configurationDiscovery(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Startup Broadcaster
+	err = e.startBroadcastService(ctx)
 	if err != nil {
 		return err
 	}
@@ -212,19 +324,18 @@ func (e *Node) Start(ctx context.Context) error {
 	return nil
 }
 
-func (e *Node) startNetwork(ctx context.Context) error {
-	e.config.Logger.Debug("Generating host data")
-
-	host, err := e.genHost(ctx)
-	if err != nil {
-		e.config.Logger.Error(err.Error())
-		return err
+func (e *Node) startDiscovery(ctx context.Context) error {
+	for _, sd := range e.config.DiscoveryService {
+		if err := sd.Run(e.config.Logger, ctx, e.host); err != nil {
+			e.config.Logger.Fatal(fmt.Errorf("while starting service discovery %+v: '%w", sd, err))
+		}
 	}
-	e.host = host
 
-	e.config.Logger.Info("Node ID:", host.ID())
-	e.config.Logger.Info("Node Addresses:", host.Addrs())
+	e.config.Logger.Debug("Network started")
+	return nil
+}
 
+func (e *Node) startBroadcastService(ctx context.Context) error {
 	e.Broadcaster = broadcast.NewStreamBroadcaster(
 		e.config.Logger,
 		e.config.DiscoveryPeers,
@@ -236,14 +347,7 @@ func (e *Node) startNetwork(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	go e.Broadcaster.Start(ctx, host, myIP.String())
+	go e.Broadcaster.Start(ctx, e.host, myIP.String())
 
-	for _, sd := range e.config.DiscoveryService {
-		if err := sd.Run(e.config.Logger, ctx, host); err != nil {
-			e.config.Logger.Fatal(fmt.Errorf("while starting service discovery %+v: '%w", sd, err))
-		}
-	}
-
-	e.config.Logger.Debug("Network started")
 	return nil
 }

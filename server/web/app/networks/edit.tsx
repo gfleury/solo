@@ -14,10 +14,13 @@ export default function Edit(props: { networkID: number }) {
     const { mutate } = useSWRConfig()
     const editNetwork = PutWithBody("/network")
     const networkEdited = Get("/network/" + props.networkID)
-    const providers = Get("/providers")
 
     const networkCastObj: Network = {
         name: "",
+        cidr: "",
+        connection_config: "",
+        user: {},
+        linkedusers: [],
     }
     const [network, setNetwork] = useState(networkCastObj)
 
@@ -33,13 +36,7 @@ export default function Edit(props: { networkID: number }) {
     function onChangeSetObject(e: ChangeEvent<FormControlElement>) {
         const patchObject: any = {}
         const property = e.target.name
-        if (property == "provider.name") {
-            patchObject["provider"] = {
-                name: e.target.value
-            }
-        } else {
-            patchObject[property] = e.target.value
-        }
+        patchObject[property] = e.target.value
         setNetwork(network => ({
             ...network,
             ...patchObject
@@ -48,84 +45,76 @@ export default function Edit(props: { networkID: number }) {
 
     async function submit(e: MouseEvent<HTMLButtonElement>) {
         const networkCast: Network = network
-        // Currently name is the same as login
-        networkCast.name = networkCast.login
-        // @ts-ignore
-        const data = await editNetwork.trigger(networkCast)
-        if (data.status === 201) {
-            let resJson = data.json()
-            // Clean state
-            setNetwork(networkCastObj)
+        try {
+            // @ts-ignore
+            const data = await editNetwork.trigger(networkCast)
+            if (data.status === 201) {
+                let resJson = data.json()
+                // Clean state
+                setNetwork(networkCastObj)
 
-            setValidated(false)
-            handleClose()
-            return mutate(GetUrl("/networks"))
-        } else {
-            alertService.error("Adding network failed with: ".concat(await data.text()), {})
+                setValidated(true)
+                handleClose()
+                setValidated(false)
+
+                return mutate(GetUrl("/networks"))
+            } else {
+                alertService.error("Adding network failed with: ".concat(await data.text()), {})
+            }
+        } catch (error) {
+            console.log(error)
         }
-
     }
 
     const [validated, setValidated] = useState(false);
 
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         const form = event.currentTarget;
-        if (form.checkValidity() === false) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-
-        setValidated(true);
+        event.preventDefault();
+        event.stopPropagation();
     };
 
-    if (networkEdited.isLoading || providers.isLoading) return (<></>)
+    if (networkEdited.isLoading) return (<></>)
 
     return (
         <>
             <Button variant="primary" onClick={handleShow}>
-            {OneOrBothBySize("Edit", <FontAwesomeIcon icon={faEdit} />)}
+                {OneOrBothBySize("Edit", <FontAwesomeIcon icon={faEdit} />)}
             </Button>
             <Modal show={show} onHide={handleClose}>
                 <Form noValidate validated={validated} onSubmit={handleSubmit}>
                     <Modal.Header closeButton>
-                        <Modal.Title>Add network</Modal.Title>
+                        <Modal.Title>Edit network</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <Form.Group className="mb-3" controlId="formLogin">
-                            <Form.Label>Login</Form.Label>
-                            <Form.Control type="email" placeholder="Enter login" name="login" onChange={onChangeSetObject} defaultValue={network.login} required />
-                            <Form.Text className="text-muted">
-                                We will never share your email with anyone else.
-                            </Form.Text>
-                        </Form.Group>
+                        <Form.Group>
+                            <Form.Group className="mb-3" controlId="formName">
+                                <Form.Label>Name</Form.Label>
+                                <Form.Control type="name" placeholder="Network name, eg: Dummy Network" name="name" onChange={onChangeSetObject} defaultValue={network.name} required />
+                                <Form.Text className="text-muted">
+                                    The network name, this is just a reference for you.
+                                </Form.Text>
+                            </Form.Group>
 
-                        <Form.Group className="mb-3" controlId="formPassword">
-                            <Form.Label>Password</Form.Label>
-                            <Form.Control type="password" placeholder="Password" name="password" onChange={onChangeSetObject} defaultValue={network.password} required />
-                        </Form.Group>
+                            <Form.Group className="mb-3" controlId="formCIDR">
+                                <Form.Label>Network CIDR</Form.Label>
+                                <Form.Control type="networkaddress" placeholder="Network CIDR, eg: 10.1.0.0/24" name="cidr" onChange={onChangeSetObject} defaultValue={network.cidr} required />
+                            </Form.Group>
 
-                        <Form.Group className="mb-3" controlId="form2FA">
-                            <Form.Label>2FA</Form.Label>
-                            <Form.Control type="text" placeholder="2FA" name="twofa" onChange={onChangeSetObject} required />
-                        </Form.Group>
-
-                        <Form.Group className="mb-3" controlId="formNetworkType">
-                            <Form.Label>Network type</Form.Label>
-                            <Form.Select id="type" name="provider.name" onChange={onChangeSetObject} required>
-                                {providers.data.map((item: any) => (
-                                    <option key={item.ID}>{item.name}</option>
-                                ))}
-                            </Form.Select>
+                            <Form.Group className="mb-3" controlId="formConnectionConfiguration">
+                                <Form.Label>Network CIDR</Form.Label>
+                                <Form.Control as="textarea" rows={3} placeholder="This must be the connection configuration token" name="connection_config" onChange={onChangeSetObject} defaultValue={network.connection_config} required />
+                            </Form.Group>
                         </Form.Group>
                     </Modal.Body>
-                    <Modal.Footer>
+                    <Form.Group>
                         <Button variant="secondary" onClick={handleClose}>
-                            Close
-                        </Button>
+                            Cancel
+                        </Button>&nbsp;
                         <Button variant="primary" type="submit" onClick={submit}>
                             Save Changes
                         </Button>
-                    </Modal.Footer>
+                    </Form.Group>
                 </Form>
             </Modal>
         </>

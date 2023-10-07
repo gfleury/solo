@@ -38,17 +38,19 @@ const (
 )
 
 type DHT struct {
+	*dht.IpfsDHT
+
+	OTPKeyReceiver    chan crypto.OTPKey
 	OTPKey            crypto.OTPKey
 	Rendezvous        string
 	latestRendezvous  string
 	DiscoveryPeers    AddrList
 	DiscoveryInterval time.Duration
-	*dht.IpfsDHT
-	dhtOptions []dht.Option
+	dhtOptions        []dht.Option
 }
 
 func NewDHT(d ...dht.Option) *DHT {
-	return &DHT{dhtOptions: d}
+	return &DHT{dhtOptions: d, OTPKeyReceiver: make(chan crypto.OTPKey)}
 }
 
 func (d *DHT) Option(ctx context.Context) func(c *libp2p.Config) error {
@@ -83,10 +85,6 @@ func (d *DHT) startDHT(ctx context.Context, h host.Host) (*dht.IpfsDHT, error) {
 }
 
 func (d *DHT) Run(c log.StandardLogger, ctx context.Context, host host.Host) error {
-	if d.OTPKey.KeyLength == 0 {
-		d.OTPKey.KeyLength = 12
-	}
-
 	// Start a DHT, for use in peer discovery. We can't just make a new DHT
 	// client because we want each peer to maintain its own local copy of the
 	// DHT, so that the bootstrapping node of the DHT can go down without
@@ -111,7 +109,12 @@ func (d *DHT) Run(c log.StandardLogger, ctx context.Context, host host.Host) err
 	}
 
 	go func() {
-		connect()
+		// Bootstrap DHT peers, so we can have connectivity with it
+		d.bootstrapPeers(c, ctx, host)
+
+		// Wait to receive the OTPKey from ConfigurationDiscovery
+		d.OTPKey = <-d.OTPKeyReceiver
+
 		t := utils.NewBackoffTicker(utils.BackoffMaxInterval(d.DiscoveryInterval))
 		defer t.Stop()
 		for {

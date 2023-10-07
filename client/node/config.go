@@ -52,9 +52,11 @@ type Config struct {
 
 	AdditionalOptions, Options []libp2p.Option
 
-	DiscoveryPeers discovery.AddrList
+	DiscoveryPeers       discovery.AddrList
+	PublicDiscoveryPeers bool
 
-	Sealer crypto.Sealer
+	ConnectionConfigToken string
+	Sealer                crypto.Sealer
 }
 
 type StreamHandler func(*Node) func(stream network.Stream)

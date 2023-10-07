@@ -180,8 +180,9 @@ func NetworkAssignNodeFromRegistrationCode(w http.ResponseWriter, r *http.Reques
 	networkNode := registration.Node
 	// Update node with new network ID that it belongs
 	// and next free ip from network
-	networkNode.NetworkID = network.ID
+	networkNode.NetworkID = &network.ID
 	networkNode.IP = network.NextFreeIP()
+	networkNode.Actived = true
 
 	// Save node with networkID
 	result = db_handler.Save(&networkNode)
@@ -200,23 +201,9 @@ func NetworkAssignNodeFromRegistrationCode(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 }
 
-type ConnectionConfigurationRequest struct {
-	PeerID                  string
-	NodeAuthenticationToken string
-}
-
-type ConnectionConfigurationResponse struct {
-	ConnectionConfigToken string
-	IPAddress             string
-}
-
-func (c *ConnectionConfigurationResponse) Json() ([]byte, error) {
-	return json.Marshal(c)
-}
-
 func GetConnectionConfiguration(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var request ConnectionConfigurationRequest
+	var request common.ConnectionConfigurationRequest
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -224,32 +211,41 @@ func GetConnectionConfiguration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	node := models.NetworkNode{PeerID: request.PeerID}
-
 	db_handler := db.GetDB(r.Context())
 
-	result := db_handler.Preload(clause.Associations).Find(&node)
-	if result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusBadRequest)
+	networkNode := models.NetworkNode{}
+	result := db_handler.Preload(clause.Associations).Where("peer_id = ?", request.PeerID).First(&networkNode)
+	if result.Error != nil || result.RowsAffected < 1 {
+		http.Error(w, result.Error.Error(), http.StatusNotFound)
 		return
 	}
 
-	rawAuthentirationToken, err := base64.RawStdEncoding.DecodeString(request.NodeAuthenticationToken)
+	rawAuthenticationToken, err := base64.RawStdEncoding.DecodeString(request.NodeAuthenticationToken)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	pubKeyBytes, err := base64.RawStdEncoding.DecodeString(networkNode.PublicKey)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	pubKey := ed25519.PublicKey(node.PublicKey)
-	err = ed25519.VerifyWithOptions(pubKey, common.NodeAuthenticationTokenMessage(), rawAuthentirationToken, common.NodeAuthenticationTokenOptions)
+	pubKey := ed25519.PublicKey(pubKeyBytes)
+	err = ed25519.VerifyWithOptions(pubKey, common.NodeAuthenticationTokenMessage(networkNode.Hostname), rawAuthenticationToken, common.NodeAuthenticationTokenOptions)
 	if err != nil {
 		http.Error(w, "Node authentication token is invalid", http.StatusBadRequest)
 		return
 	}
 
-	response := ConnectionConfigurationResponse{
-		ConnectionConfigToken: node.Network.ConnectionConfigToken,
-		IPAddress:             "10.1.0.1/24",
+	if !networkNode.Actived {
+		http.Error(w, "Node wasn't activated yet", http.StatusFailedDependency)
+		return
+	}
+
+	response := common.ConnectionConfigurationResponse{
+		ConnectionConfigToken: networkNode.Network.ConnectionConfigToken,
+		InterfaceAddress:      networkNode.IP,
 	}
 
 	JsonResponse(&response, http.StatusOK, w)
