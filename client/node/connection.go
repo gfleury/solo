@@ -88,6 +88,17 @@ func (e *Node) BlockSubnet(cidr string) error {
 	return e.ConnectionGater().BlockSubnet(n)
 }
 
+func (e *Node) blockLocalTraffic() error {
+	if e.config.InterfaceAddress != "" {
+		err := e.BlockSubnet(e.config.InterfaceAddress)
+		if err != nil {
+			return err
+		}
+	}
+
+	return e.BlockSubnet("127.0.0.0/8")
+}
+
 func (e *Node) genHost(ctx context.Context) (host.Host, error) {
 	e.config.Logger.Debug("Generating host data")
 
@@ -99,12 +110,6 @@ func (e *Node) genHost(ctx context.Context) (host.Host, error) {
 	}
 
 	e.cg = cg
-
-	if e.config.InterfaceAddress != "" {
-		e.BlockSubnet(e.config.InterfaceAddress)
-	}
-
-	e.BlockSubnet("127.0.0.0/8")
 
 	if !e.config.RandomIdentity {
 		e.config.Logger.Info("Using persistent node Identification")

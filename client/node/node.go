@@ -257,6 +257,7 @@ func (e *Node) configurationDiscovery(ctx context.Context) error {
 					}
 				}
 				e.config.InterfaceAddress = cfg.InterfaceAddress
+				e.config.NetworkServices[0].(*vpn.VPNService).Config.InterfaceAddress = cfg.InterfaceAddress
 				connectionCfg, err = models.YAMLConnectionConfigFromToken(cfg.ConnectionConfigToken)
 				if err != nil {
 					return err
@@ -299,6 +300,13 @@ func (e *Node) Start(ctx context.Context) error {
 
 	err = e.configurationDiscovery(ctx)
 	if err != nil {
+		return err
+	}
+
+	// Block p2p Traffic on VPN network and localhost
+	err = e.blockLocalTraffic()
+	if err != nil {
+		e.config.Logger.Error(err.Error())
 		return err
 	}
 

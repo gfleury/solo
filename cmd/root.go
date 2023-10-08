@@ -70,7 +70,7 @@ func runMain(cmd *cobra.Command, args []string) {
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	rootCmd.PersistentFlags().StringVarP(&config.Token, "token", "t", "", "Configuration token")
-	rootCmd.PersistentFlags().StringVarP(&config.InterfaceAddress, "address", "a", "10.1.0.1/24", "TUN interface ip address")
+	rootCmd.PersistentFlags().StringVarP(&config.InterfaceAddress, "address", "a", "192.168.254.0/24", "TUN interface ip address")
 	rootCmd.PersistentFlags().StringVarP(&config.InterfaceName, "interface", "i", "utun0", "TUN interface name")
 	rootCmd.PersistentFlags().BoolVarP(&config.CreateInterface, "create-iface", "c", true, "Create TUN network interface")
 	rootCmd.PersistentFlags().StringVar(&config.Libp2pLogLevel, "libp2p-log-level", "error", "Libp2p log level")
