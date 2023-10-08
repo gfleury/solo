@@ -155,7 +155,7 @@ func NetworkAssignNodeFromRegistrationCode(w http.ResponseWriter, r *http.Reques
 	vars := mux.Vars(r)
 	db_handler := db.GetDB(r.Context())
 
-	result := db_handler.Preload("User").First(&network, vars["networkId"])
+	result := db_handler.Preload(clause.Associations).First(&network, vars["networkId"])
 	if result.Error != nil {
 		http.Error(w, result.Error.Error(), http.StatusBadRequest)
 		return
@@ -199,6 +199,7 @@ func NetworkAssignNodeFromRegistrationCode(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message": "node successfully associated with network"}`))
 }
 
 func GetConnectionConfiguration(w http.ResponseWriter, r *http.Request) {
@@ -244,4 +245,24 @@ func GetConnectionConfiguration(w http.ResponseWriter, r *http.Request) {
 	}
 
 	JsonResponse(&response, http.StatusOK, w)
+}
+
+func GetNextFreeIPAddress(w http.ResponseWriter, r *http.Request) {
+	var network models.Network
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	vars := mux.Vars(r)
+	db_handler := db.GetDB(r.Context())
+
+	result := db_handler.Preload(clause.Associations).First(&network, vars["networkId"])
+	if result.Error != nil {
+		http.Error(w, result.Error.Error(), http.StatusBadRequest)
+		return
+	}
+
+	nextIp := struct {
+		NextIP  string
+		Network string
+	}{network.NextFreeIP(), network.CIDR}
+
+	JsonResponse(&nextIp, http.StatusOK, w)
 }

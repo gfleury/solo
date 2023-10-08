@@ -106,9 +106,16 @@ var routes = Routes{
 	},
 
 	Route{
+		"GetNextFreeIPAddress",
+		strings.ToUpper("Get"),
+		"/api/v1/network/{networkId}/nextip",
+		GetNextFreeIPAddress,
+	},
+
+	Route{
 		"NetworkAssignNodeFromRegistrationCode",
 		strings.ToUpper("Put"),
-		"/api/v1/network/{networkId}/{code}",
+		"/api/v1/network/{networkId}/register/{code}",
 		NetworkAssignNodeFromRegistrationCode,
 	},
 

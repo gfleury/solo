@@ -34,13 +34,13 @@ export default function Add() {
     async function submit(e: MouseEvent<HTMLElement>) {
         console.log(activation)
         // @ts-ignore
-        const data = await registerNode.trigger(`/${activation.networkID}/${activation.code}`)
+        const data = await registerNode.trigger(`/${activation.networkID}/register/${activation.code}`)
         if (data.status === 200) {
             let resJson = data.json()
             // Clean state
             setActivation(activationObj)
-
             setValidated(true)
+
             return router.push("/networks")
         } else {
             alertService.error("Adding node failed with: ".concat(await data.text()), {})

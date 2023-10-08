@@ -1,13 +1,7 @@
 package common
 
-import "encoding/json"
-
 type RegistrationResponse struct {
 	Code string
-}
-
-func (a *RegistrationResponse) Json() ([]byte, error) {
-	return json.Marshal(a)
 }
 
 type ConnectionConfigurationRequest struct {
@@ -20,6 +14,7 @@ type ConnectionConfigurationResponse struct {
 	InterfaceAddress      string
 }
 
-func (c *ConnectionConfigurationResponse) Json() ([]byte, error) {
-	return json.Marshal(c)
+type NextIP struct {
+	NextIP  string
+	Network string
 }
