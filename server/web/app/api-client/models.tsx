@@ -3,14 +3,14 @@
  * @export
  * @interface Node
  */
-export interface Node {
+export interface NetworkNode {
     ID?: number;
-	peerid?:   string;
-	hostname?:   string;
-    os?:   string;
-	arch?:   string;
-	ip?:   string;
-	version?:   string;
+	PeerID?:   string;
+	Hostname?:   string;
+    OS?:   string;
+	Arch?:   string;
+	IP?:   string;
+	Version?:   string;
 }
 
 /**
@@ -23,7 +23,7 @@ export interface Network {
     name: string;
     cidr: string;
     connection_config: string;
-    nodes?: Array<Node>;
+    nodes?: Array<NetworkNode>;
     user: User;
     linkedusers: Array<LinkedUser>;
 }
@@ -61,4 +61,5 @@ export interface User {
     email?: string;
     userStatus?: number;
     networks?: Array<Network>;
+    avatar?: string;
 }

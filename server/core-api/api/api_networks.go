@@ -83,7 +83,7 @@ func GetNetworkById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	db_handler := db.GetDB(r.Context())
 
-	result := db_handler.Preload("User").First(&a, vars["networkId"])
+	result := db_handler.Preload(clause.Associations).First(&a, vars["networkId"])
 	if result.Error != nil {
 		http.Error(w, result.Error.Error(), http.StatusBadRequest)
 		return

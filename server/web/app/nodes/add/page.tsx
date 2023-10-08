@@ -7,6 +7,7 @@ import { Put, Get } from '../../api-client'
 import { Network } from '../../api-client/models'
 import { alertService } from '../../services/alerts'
 import { useRouter } from 'next/navigation';
+import { Stack } from 'react-bootstrap'
 
 export default function Add() {
     const router = useRouter()
@@ -58,7 +59,7 @@ export default function Add() {
     if (networks.isLoading) return (<></>)
     
     return (
-        <>
+        <Stack className="my-2" gap={2}>
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
                 <Form.Label>Register Node</Form.Label>
                 <Form.Group>
@@ -89,7 +90,7 @@ export default function Add() {
                     </Button>
                 </Form.Group>
             </Form>
-        </>
+        </Stack>
     );
 }
 

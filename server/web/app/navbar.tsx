@@ -13,8 +13,9 @@ import { Stack } from 'react-bootstrap'
 import { OneOrOtherBySize } from './utils'
 
 const navigation = [
-  { name: 'Home', href: '/home' },
+  { name: 'Home', href: '/' },
   { name: 'Networks', href: '/networks' },
+  { name: 'Nodes', href: '/nodes' },
 ];
 
 function signOut() {
@@ -61,10 +62,10 @@ export default function OurNavbar({ user }: { user?: User }) {
                   src={user?.avatar || 'https://avatar.vercel.sh/leerob'}
                   height={25}
                   width={32}
-                  alt={`${user?.firstName || 'placeholder'} avatar`}
+                  alt={`${user?.email || 'placeholder'} avatar`}
                   referrerPolicy="no-referrer"
                 />)} id="basic-nav-dropdown">
-                  <NavDropdown.Header>Logged as {user?.firstName}</NavDropdown.Header>
+                  <NavDropdown.Header>Logged as {user?.email}</NavDropdown.Header>
                   <NavDropdown.Item href="#Logout">Logout</NavDropdown.Item>
                 </NavDropdown>
               </div>

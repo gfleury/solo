@@ -39,7 +39,7 @@ type Network struct {
 }
 
 type NetworkNode struct {
-	Model     `json:"-"`
+	Model
 	NetworkID *uint    `json:"-"`
 	Network   *Network `json:"-"`
 	Actived   bool     `json:"-"`

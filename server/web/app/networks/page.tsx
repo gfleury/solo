@@ -1,7 +1,7 @@
 'use client'
 
 import { MouseEvent } from 'react'
-import { Get, Delete, Put, GetUrl, HandleFailures } from '../api-client'
+import { Get, Delete, GetUrl, HandleFailures } from '../api-client'
 import { Network } from '../api-client/models'
 import Loading from '../loading'
 import Table from 'react-bootstrap/Table';
@@ -10,12 +10,10 @@ import Button from 'react-bootstrap/Button'
 import ButtonGroup from 'react-bootstrap/ButtonGroup'
 import { useSWRConfig } from 'swr'
 import { alertService } from '../services/alerts'
-import Image from '../image'
-import { faDev, faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import SearchBar from './search'
 import { Stack } from 'react-bootstrap'
-import { faRefresh, faRemove } from '@fortawesome/free-solid-svg-icons'
+import {  faRemove } from '@fortawesome/free-solid-svg-icons'
 import { OneOrBothBySize } from '../utils'
 import { useRouter } from 'next/navigation'
 
@@ -39,16 +37,16 @@ export default function Networks() {
         }
     }
 
+    function openNetwork(networkID: number) {
+        return async function openOnClick(e: MouseEvent<HTMLTableDataCellElement>) {
+            console.log(networkID)
+            return router.push(`/network/${networkID}`)
+        }
+    }
+
     if (networks.isLoading) return (Loading())
 
     const networksCast: Network[] = networks.data
-
-    function getIcon(name: string | undefined) {
-        if (name === "Instagram") {
-            return faInstagram
-        }
-        return faDev
-    }
 
     return (
         <Stack className="my-2" gap={2}>
@@ -56,7 +54,7 @@ export default function Networks() {
                 <SearchBar />
             </div>
             <div>
-                <Table align="center" responsive>
+                <Table hover align="center" responsive>
                     <thead>
                         <tr>
                             <th>Network</th>
@@ -67,10 +65,10 @@ export default function Networks() {
                     <tbody>
                         {networksCast.map((network: Network) => (
                             <tr key={network.ID}>
-                                <td>
+                                <td onClick={openNetwork(network.ID !== undefined ? network.ID : -1)}>
                                     {network.name}
                                 </td>
-                                <td>
+                                <td onClick={openNetwork(network.ID !== undefined ? network.ID : -1)}>
                                     {network.cidr}
                                 </td>
                                 <td>
