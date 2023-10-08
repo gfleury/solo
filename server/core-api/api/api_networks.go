@@ -225,13 +225,8 @@ func GetConnectionConfiguration(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	pubKeyBytes, err := base64.RawStdEncoding.DecodeString(networkNode.PublicKey)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 
-	pubKey := ed25519.PublicKey(pubKeyBytes)
+	pubKey := ed25519.PublicKey(networkNode.PublicKey)
 	err = ed25519.VerifyWithOptions(pubKey, common.NodeAuthenticationTokenMessage(networkNode.Hostname), rawAuthenticationToken, common.NodeAuthenticationTokenOptions)
 	if err != nil {
 		http.Error(w, "Node authentication token is invalid", http.StatusBadRequest)

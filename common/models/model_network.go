@@ -7,7 +7,6 @@ package models
 
 import (
 	"crypto/ed25519"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -51,7 +50,7 @@ type NetworkNode struct {
 	Arch      string
 	IP        string
 	Version   string
-	PublicKey string
+	PublicKey []byte
 }
 
 func NewNetwork(name, CIDR string) *Network {
@@ -142,6 +141,6 @@ func NewLocalNode(host host.Host, IP string) NetworkNode {
 		Arch:      runtime.GOARCH,
 		Version:   "0.0.1",
 		IP:        IP,
-		PublicKey: base64.RawStdEncoding.EncodeToString(pubKey),
+		PublicKey: pubKey,
 	}
 }
