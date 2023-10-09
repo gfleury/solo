@@ -1,6 +1,6 @@
 solo
-core-api
+server/core-api/core-api
 test.db
-oauth2
+server/oauth2/oauth2
 rendezvous
 TOKEN
