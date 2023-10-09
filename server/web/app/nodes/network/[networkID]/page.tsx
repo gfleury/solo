@@ -1,24 +1,28 @@
 'use client'
 
-import { Get, Delete, HandleFailures } from '../../api-client'
-import { Network, NetworkNode } from '../../api-client/models'
+import { Get, Delete, HandleFailures } from '../../../api-client'
+import { Network, NetworkNode } from '../../../api-client/models'
 import { useSWRConfig } from 'swr'
 import { useRouter } from 'next/navigation'
-import Loading from '../../loading'
+import Loading from '../../../loading'
 import SearchBar from './search'
 import { Stack } from 'react-bootstrap'
 import Table from 'react-bootstrap/Table';
 import ButtonGroup from 'react-bootstrap/ButtonGroup'
 import Button from 'react-bootstrap/Button'
 import { faRemove } from '@fortawesome/free-solid-svg-icons'
-import { OneOrBothBySize } from '../../utils'
+import { OneOrBothBySize } from '../../../utils'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faApple, faLinux } from '@fortawesome/free-brands-svg-icons'
+import { faApple, faLinux, faWindows } from '@fortawesome/free-brands-svg-icons'
 
 export default function Network({ params }: { params: { networkID: string } }) {
   const { mutate } = useSWRConfig()
   const router = useRouter()
-  const network = HandleFailures(Get(`/network/${params.networkID}`), router)
+  let nodesApiURL = `/network/${params.networkID}`
+  if (params.networkID == "all") {
+    nodesApiURL = `/nodes`
+  }
+  const network = HandleFailures(Get(nodesApiURL), router)
   const nodeDelete = Delete("/node/")
 
   function getOSIcon(name: string) {
@@ -27,6 +31,9 @@ export default function Network({ params }: { params: { networkID: string } }) {
     }
     if (name == "darwin") {
       return <FontAwesomeIcon icon={faApple} style={{ color: "#f3eff0", }} />
+    }
+    if (name == "windows") {
+      return <FontAwesomeIcon icon={faWindows} style={{ color: "#f3eff0", }} />
     }
   }
 

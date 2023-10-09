@@ -54,6 +54,7 @@ type Config struct {
 
 	DiscoveryPeers       discovery.AddrList
 	PublicDiscoveryPeers bool
+	StandaloneMode       bool
 
 	ConnectionConfigToken string
 	Sealer                crypto.Sealer

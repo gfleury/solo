@@ -50,20 +50,22 @@ func (s *DHTTestSuite) TestDHT() {
 
 	dht := discovery.NewDHT()
 	dht.DiscoveryPeers = bootstrappers
-	dht.OTPKey = key
 	dht.DiscoveryInterval = 10 * time.Second
 
 	dht2 := discovery.NewDHT()
 	dht2.DiscoveryPeers = bootstrappers
-	dht2.OTPKey = key
 	dht2.DiscoveryInterval = 10 * time.Second
 
 	h, _ := libp2p.New()
 	h2, _ := libp2p.New()
 
 	log := logger.New(log.LevelDebug)
+
 	dht.Run(log, ctx, h)
+	dht.OTPKeyReceiver <- key
+
 	dht2.Run(log, ctx, h2)
+	dht2.OTPKeyReceiver <- key
 
 	startTime := time.Now()
 
@@ -99,20 +101,22 @@ func (s *DHTTestSuite) TestDHT600Seconds() {
 
 	dht := discovery.NewDHT()
 	dht.DiscoveryPeers = bootstrappers
-	dht.OTPKey = key
 	dht.DiscoveryInterval = 600 * time.Second
 
 	dht2 := discovery.NewDHT()
 	dht2.DiscoveryPeers = bootstrappers
-	dht2.OTPKey = key
 	dht2.DiscoveryInterval = 600 * time.Second
 
 	h, _ := libp2p.New()
 	h2, _ := libp2p.New()
 
 	log := logger.New(log.LevelDebug)
+
 	dht.Run(log, ctx, h)
+	dht.OTPKeyReceiver <- key
+
 	dht2.Run(log, ctx, h2)
+	dht2.OTPKeyReceiver <- key
 
 	startTime := time.Now()
 

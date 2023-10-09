@@ -40,7 +40,7 @@ export default function Networks() {
     function openNetwork(networkID: number) {
         return async function openOnClick(e: MouseEvent<HTMLTableDataCellElement>) {
             console.log(networkID)
-            return router.push(`/network/${networkID}`)
+            return router.push(`/nodes/network/${networkID}`)
         }
     }
 

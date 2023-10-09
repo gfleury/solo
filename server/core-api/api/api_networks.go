@@ -68,7 +68,7 @@ func DeleteNetwork(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	db_handler := db.GetDB(r.Context())
 
-	result := db_handler.Delete(&models.Network{}, vars["networkId"])
+	result := db_handler.InnerJoins("User", db_handler.Where(models.User{Email: jwt.GetEmailFromClaim(r.Context())})).Delete(&models.Network{}, vars["networkId"])
 	if result.Error != nil {
 		http.Error(w, result.Error.Error(), http.StatusBadRequest)
 		return
@@ -83,7 +83,7 @@ func GetNetworkById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	db_handler := db.GetDB(r.Context())
 
-	result := db_handler.Preload(clause.Associations).First(&a, vars["networkId"])
+	result := db_handler.InnerJoins("User", db_handler.Where(models.User{Email: jwt.GetEmailFromClaim(r.Context())})).Preload(clause.Associations).First(&a, vars["networkId"])
 	if result.Error != nil {
 		http.Error(w, result.Error.Error(), http.StatusBadRequest)
 		return
@@ -139,6 +139,13 @@ func UpdateNode(w http.ResponseWriter, r *http.Request) {
 
 	db_handler := db.GetDB(r.Context())
 
+	// Check if request has access to network
+	err = db.RequestHasPermissionsToNetwork(db_handler, r, n.NetworkID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusForbidden)
+		return
+	}
+
 	result := db_handler.Save(&n)
 
 	if result.Error != nil {
@@ -155,7 +162,7 @@ func NetworkAssignNodeFromRegistrationCode(w http.ResponseWriter, r *http.Reques
 	vars := mux.Vars(r)
 	db_handler := db.GetDB(r.Context())
 
-	result := db_handler.Preload(clause.Associations).First(&network, vars["networkId"])
+	result := db_handler.InnerJoins("User", db_handler.Where(models.User{Email: jwt.GetEmailFromClaim(r.Context())})).Preload(clause.Associations).First(&network, vars["networkId"])
 	if result.Error != nil {
 		http.Error(w, result.Error.Error(), http.StatusBadRequest)
 		return
@@ -253,7 +260,7 @@ func GetNextFreeIPAddress(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	db_handler := db.GetDB(r.Context())
 
-	result := db_handler.Preload(clause.Associations).First(&network, vars["networkId"])
+	result := db_handler.InnerJoins("User", db_handler.Where(models.User{Email: jwt.GetEmailFromClaim(r.Context())})).Preload(clause.Associations).First(&network, vars["networkId"])
 	if result.Error != nil {
 		http.Error(w, result.Error.Error(), http.StatusBadRequest)
 		return
@@ -265,4 +272,29 @@ func GetNextFreeIPAddress(w http.ResponseWriter, r *http.Request) {
 	}{network.NextFreeIP(), network.CIDR}
 
 	JsonResponse(&nextIp, http.StatusOK, w)
+}
+
+func GetNodes(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	db_handler := db.GetDB(r.Context())
+
+	networks, err := db.FetchAllNetworksThatRequestHasAccess(db_handler, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	nodes := []models.NetworkNode{}
+
+	for _, network := range networks {
+		nodes = append(nodes, network.Nodes...)
+	}
+
+	j, err := json.Marshal(nodes)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
 }

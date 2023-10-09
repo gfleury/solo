@@ -19,6 +19,7 @@ type Config struct {
 	HolePunch            bool
 	RandomIdentity       bool
 	RandomPort           bool
+	StandaloneMode       bool
 }
 
 func Peers2List(peers []string) discovery.AddrList {

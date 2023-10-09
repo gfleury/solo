@@ -34,6 +34,7 @@ var (
 		InterfaceMTU:         0,
 		MaxConnections:       0,
 		HolePunch:            false,
+		StandaloneMode:       false,
 		RandomIdentity:       false,
 		RandomPort:           false,
 	}
@@ -79,8 +80,9 @@ func Execute() {
 	rootCmd.PersistentFlags().IntVarP(&config.DiscoveryInterval, "discovery-interval", "I", 120, "Discovery peers interval")
 	rootCmd.PersistentFlags().IntVarP(&config.InterfaceMTU, "interface-mtu", "m", 1420, "Discovery peers interval")
 	rootCmd.PersistentFlags().IntVarP(&config.MaxConnections, "max-connections", "M", 256, "Maximum peer connections")
-	rootCmd.PersistentFlags().BoolVarP(&config.HolePunch, "hole-punch", "H", false, "Enable holepunch to bypass NAT")
+	rootCmd.PersistentFlags().BoolVarP(&config.HolePunch, "hole-punch", "H", true, "Enable holepunch to bypass NAT")
 	rootCmd.PersistentFlags().BoolVarP(&config.PublicDiscoveryPeers, "public", "p", false, "Enable public discovery peers")
+	rootCmd.PersistentFlags().BoolVarP(&config.StandaloneMode, "standalone", "s", false, "Enable standalone mode")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/debug/pprof/", pprof.Index)

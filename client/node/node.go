@@ -177,6 +177,7 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 		Sealer:                &crypto.DefaultSealer{},
 		PublicDiscoveryPeers:  cliConfig.PublicDiscoveryPeers,
 		ConnectionConfigToken: cliConfig.Token,
+		StandaloneMode:        cliConfig.StandaloneMode,
 	}
 
 	return &Node{
@@ -226,7 +227,7 @@ func (e *Node) configurationDiscovery(ctx context.Context) error {
 	var connectionCfg *models.YAMLConnectionConfig
 	var err error
 
-	if e.config.PublicDiscoveryPeers {
+	if e.config.StandaloneMode {
 		connectionCfg, err = models.YAMLConnectionConfigFromToken(e.config.ConnectionConfigToken)
 		if err != nil {
 			return err

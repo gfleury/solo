@@ -15,7 +15,6 @@ import { OneOrOtherBySize } from './utils'
 const navigation = [
   { name: 'Home', href: '/' },
   { name: 'Networks', href: '/networks' },
-  { name: 'Nodes', href: '/nodes' },
 ];
 
 function signOut() {
