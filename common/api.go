@@ -4,9 +4,17 @@ type RegistrationResponse struct {
 	Code string
 }
 
+type ConnectionConfigurationChallengeRequest struct {
+	PeerID string
+}
+
+type ConnectionConfigurationChallengeResponse struct {
+	Challenge string
+}
+
 type ConnectionConfigurationRequest struct {
-	PeerID                  string
-	NodeAuthenticationToken string
+	PeerID          string
+	SignedChallenge string
 }
 
 type ConnectionConfigurationResponse struct {

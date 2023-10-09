@@ -18,15 +18,15 @@ func (a *RegistrationRequest) Json() ([]byte, error) {
 	return json.Marshal(a)
 }
 
-func (a *RegistrationRequest) GenerateNewCode() (string, error) {
-	b := make([]byte, 6)
+func GenerateNewRandomCode(size int) (string, error) {
+	b := make([]byte, size)
 	n, err := rand.Read(b)
-	if n != 6 {
-		return "", fmt.Errorf("unable to read 6 bytes from random")
+	if n != size {
+		return "", fmt.Errorf("unable to read %d bytes from random", size)
 	}
 	if err != nil {
 		return "", err
 	}
-	a.Code = strings.ToUpper(base32.HexEncoding.EncodeToString(b))[:6]
-	return a.Code, nil
+	code := strings.ToUpper(base32.HexEncoding.EncodeToString(b))[:size]
+	return code, nil
 }

@@ -69,8 +69,15 @@ var p2pRoutes = Routes{
 	},
 
 	Route{
-		"GetConnectionConfiguration",
+		"GetConnectionConfigurationChallenge",
 		"POST",
+		"/api/v1/node/connnection_configuration",
+		GetConnectionConfigurationChallenge,
+	},
+
+	Route{
+		"GetConnectionConfiguration",
+		"PUT",
 		"/api/v1/node/connnection_configuration",
 		GetConnectionConfiguration,
 	},

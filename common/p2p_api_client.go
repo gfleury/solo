@@ -66,26 +66,9 @@ func (s *SoloAPIP2PClient) GetNodeNetworkConfiguration() (*ConnectionConfigurati
 	}
 	privKey := ed25519.PrivateKey(rawPrivKey)
 
-	message := NodeAuthenticationTokenMessage()
-	// Sign authenticationtoken message
-	rawAuthenticationToken, err := privKey.Sign(nil, message, NodeAuthenticationTokenOptions)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// Verify message just in case
-	pubKey := privKey.Public().(ed25519.PublicKey)
-	err = ed25519.VerifyWithOptions(pubKey, message, rawAuthenticationToken, NodeAuthenticationTokenOptions)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// base64 encode token
-	nodeAuthenticationToken := base64.RawStdEncoding.EncodeToString(rawAuthenticationToken)
-
-	request := ConnectionConfigurationRequest{
-		PeerID:                  s.host.ID().String(),
-		NodeAuthenticationToken: nodeAuthenticationToken,
+	// Get Challenge
+	request := ConnectionConfigurationChallengeRequest{
+		PeerID: s.host.ID().String(),
 	}
 	b, err := json.Marshal(&request)
 	if err != nil {
@@ -95,13 +78,60 @@ func (s *SoloAPIP2PClient) GetNodeNetworkConfiguration() (*ConnectionConfigurati
 	if err != nil {
 		return nil, resp.StatusCode, err
 	}
+	if resp.StatusCode > 399 {
+		return nil, resp.StatusCode, fmt.Errorf("HTTP Error: %s", resp.Status)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, resp.StatusCode, err
+	}
+	challengeResponse := &ConnectionConfigurationChallengeResponse{}
+	err = json.Unmarshal(body, challengeResponse)
+	if err != nil {
+		return nil, resp.StatusCode, err
+	}
+	resp.Body.Close()
+
+	// Sign authenticationtoken message
+	rawSignedChallenge, err := privKey.Sign(nil, []byte(challengeResponse.Challenge), NodeAuthenticationTokenOptions)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Verify message just in case
+	pubKey := privKey.Public().(ed25519.PublicKey)
+	err = ed25519.VerifyWithOptions(pubKey, []byte(challengeResponse.Challenge), rawSignedChallenge, NodeAuthenticationTokenOptions)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// base64 encode token
+	signedChallenge := base64.RawStdEncoding.EncodeToString(rawSignedChallenge)
+
+	configurationRequest := ConnectionConfigurationRequest{
+		PeerID:          s.host.ID().String(),
+		SignedChallenge: signedChallenge,
+	}
+	b, err = json.Marshal(&configurationRequest)
+	if err != nil {
+		return nil, 0, err
+	}
+	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/v1/node/connnection_configuration", s.address), bytes.NewReader(b))
+	if err != nil {
+		return nil, 0, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err = s.client.Do(req)
+	if err != nil {
+		return nil, resp.StatusCode, err
+	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode > 399 {
 		return nil, resp.StatusCode, fmt.Errorf("HTTP Error: %s", resp.Status)
 	}
-	body, err := io.ReadAll(resp.Body)
+	body, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, resp.StatusCode, err
 	}

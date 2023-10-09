@@ -6,12 +6,9 @@
 package api
 
 import (
-	"crypto/ed25519"
-	"encoding/base64"
 	"encoding/json"
 	"net/http"
 
-	"github.com/gfleury/solo/common"
 	"github.com/gfleury/solo/common/models"
 	"github.com/gfleury/solo/server/core-api/db"
 	"github.com/gfleury/solo/server/core-api/jwt"
@@ -154,124 +151,6 @@ func UpdateNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	JsonResponse(&n, http.StatusCreated, w)
-}
-
-func NetworkAssignNodeFromRegistrationCode(w http.ResponseWriter, r *http.Request) {
-	var network models.Network
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	vars := mux.Vars(r)
-	db_handler := db.GetDB(r.Context())
-
-	result := db_handler.InnerJoins("User", db_handler.Where(models.User{Email: jwt.GetEmailFromClaim(r.Context())})).Preload(clause.Associations).First(&network, vars["networkId"])
-	if result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusBadRequest)
-		return
-	}
-
-	code, codeFound := vars["code"]
-	if !codeFound {
-		http.Error(w, "No code specified", http.StatusBadRequest)
-		return
-	}
-
-	registration := &models.RegistrationRequest{
-		Code: code,
-	}
-
-	result = db_handler.Preload(clause.Associations).First(&registration)
-	if result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusBadRequest)
-		return
-	}
-
-	networkNode := registration.Node
-	// Update node with new network ID that it belongs
-	// and next free ip from network
-	networkNode.NetworkID = &network.ID
-	networkNode.IP = network.NextFreeIP()
-	networkNode.Actived = true
-
-	// Save node with networkID
-	result = db_handler.Save(&networkNode)
-	if result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Delete RegistrationRequest
-	result = db_handler.Delete(registration)
-	if result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"message": "node successfully associated with network"}`))
-}
-
-func GetConnectionConfiguration(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var request common.ConnectionConfigurationRequest
-
-	err := json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	db_handler := db.GetDB(r.Context())
-
-	networkNode := models.NetworkNode{}
-	result := db_handler.Preload(clause.Associations).Where("peer_id = ?", request.PeerID).First(&networkNode)
-	if result.Error != nil || result.RowsAffected < 1 {
-		http.Error(w, result.Error.Error(), http.StatusNotFound)
-		return
-	}
-
-	rawAuthenticationToken, err := base64.RawStdEncoding.DecodeString(request.NodeAuthenticationToken)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	pubKey := ed25519.PublicKey(networkNode.PublicKey)
-	err = ed25519.VerifyWithOptions(pubKey, common.NodeAuthenticationTokenMessage(networkNode.Hostname), rawAuthenticationToken, common.NodeAuthenticationTokenOptions)
-	if err != nil {
-		http.Error(w, "Node authentication token is invalid", http.StatusBadRequest)
-		return
-	}
-
-	if !networkNode.Actived {
-		http.Error(w, "Node wasn't activated yet", http.StatusFailedDependency)
-		return
-	}
-
-	response := common.ConnectionConfigurationResponse{
-		ConnectionConfigToken: networkNode.Network.ConnectionConfigToken,
-		InterfaceAddress:      networkNode.IP,
-	}
-
-	JsonResponse(&response, http.StatusOK, w)
-}
-
-func GetNextFreeIPAddress(w http.ResponseWriter, r *http.Request) {
-	var network models.Network
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	vars := mux.Vars(r)
-	db_handler := db.GetDB(r.Context())
-
-	result := db_handler.InnerJoins("User", db_handler.Where(models.User{Email: jwt.GetEmailFromClaim(r.Context())})).Preload(clause.Associations).First(&network, vars["networkId"])
-	if result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusBadRequest)
-		return
-	}
-
-	nextIp := struct {
-		NextIP  string
-		Network string
-	}{network.NextFreeIP(), network.CIDR}
-
-	JsonResponse(&nextIp, http.StatusOK, w)
 }
 
 func GetNodes(w http.ResponseWriter, r *http.Request) {
