@@ -41,6 +41,10 @@ export default function Network({ params }: { params: { networkID: string } }) {
 
   let networkCast: Network = network.data
 
+  if (params.networkID == "all") {
+    networkCast.nodes = network.data
+  }
+
   console.log(networkCast)
 
   return (

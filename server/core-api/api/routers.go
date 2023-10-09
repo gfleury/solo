@@ -184,15 +184,22 @@ var routes = Routes{
 
 	Route{
 		"GetNodeRegistration",
-		"GET",
+		strings.ToUpper("Get"),
 		"/api/v1/node/register",
 		GetNodeRegistration,
 	},
 
 	Route{
 		"UpdateNode",
-		"PUT",
+		strings.ToUpper("Put"),
 		"/api/v1/node",
 		UpdateNode,
+	},
+
+	Route{
+		"UpdateNode",
+		strings.ToUpper("Get"),
+		"/api/v1/nodes",
+		GetNodes,
 	},
 }
