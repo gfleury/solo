@@ -2,23 +2,21 @@
 
 Fully p2p VPN service. Inspired by github.com/mudler/edgevpn.
 
-- Create your VPN service without any server
 - Easy creation of software defined networks
 - Connect many hosts in a mesh network
 
 
-Host 1:
+Access https://web.fleury.gg, login and create a network.
+
+Host:
 ```
-$ ./solo generateToken > TOKEN
-$ ./solo -t $(cat TOKEN) --address=10.1.0.1/24
+$ ./solo register
+$ sh node2.sh
 ```
 
-*** Copy the TOKEN file to the other hosts
-
-Host 2:
-```
-$ ./solo -t $(cat TOKEN) --address=10.1.0.2/24
-```
+Copy the code it will generate go back into https://web.fleury.gg
+and add a new host and use the code to register the node into a
+specific network. Repeat in many hosts as you like.
 
 
 It might take up to 1 minute to synchronize all streams.
