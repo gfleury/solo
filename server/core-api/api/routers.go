@@ -209,4 +209,11 @@ var routes = Routes{
 		"/api/v1/nodes",
 		GetNodes,
 	},
+
+	Route{
+		"DeleteNode",
+		strings.ToUpper("Delete"),
+		"/api/v1/node/{nodeId}",
+		DeleteNode,
+	},
 }

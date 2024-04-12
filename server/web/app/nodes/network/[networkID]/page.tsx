@@ -1,7 +1,7 @@
 'use client'
 
-import { Get, Delete, HandleFailures } from '../../../api-client'
-import { Network, NetworkNode } from '../../../api-client/models'
+import { Get, Delete, HandleFailures, GetUrl } from '../../../api-client'
+import { Network as NetworkModel, NetworkNode } from '../../../api-client/models'
 import { useSWRConfig } from 'swr'
 import { useRouter } from 'next/navigation'
 import Loading from '../../../loading'
@@ -14,6 +14,7 @@ import { faRemove } from '@fortawesome/free-solid-svg-icons'
 import { OneOrBothBySize } from '../../../utils'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faApple, faLinux, faWindows } from '@fortawesome/free-brands-svg-icons'
+import { alertService } from '@/app/services/alerts'
 
 export default function Network({ params }: { params: { networkID: string } }) {
   const { mutate } = useSWRConfig()
@@ -37,9 +38,23 @@ export default function Network({ params }: { params: { networkID: string } }) {
     }
   }
 
+  function deleteFunction(nodeID: number) {
+    return async function deleteOnClick(e: MouseEvent<HTMLButtonElement>) {
+        // @ts-ignore
+        const data = await nodeDelete.trigger(nodeID)
+
+        if (nodeDelete.error || data.status != 204) {
+            alertService.error("Deleting network failed with: ".concat(await data.text()), {})
+        } else {
+            mutate(GetUrl(nodesApiURL))
+        }
+
+    }
+}
+
   if (network.isLoading) return (Loading())
 
-  let networkCast: Network = network.data
+  let networkCast: NetworkModel = network.data
 
   if (params.networkID == "all") {
     networkCast.nodes = network.data
@@ -77,10 +92,10 @@ export default function Network({ params }: { params: { networkID: string } }) {
                 </td>
                 <td>
                   <ButtonGroup size='sm'>
-                    <Button variant="primary" disabled={nodeDelete.isMutating}>
+                    <Button variant="primary" disabled={nodeDelete.isMutating}
+                      onClick={deleteFunction(node.ID !== undefined ? node.ID : -1)}>
                       {OneOrBothBySize("Delete", <FontAwesomeIcon icon={faRemove} />)}
                     </Button>
-                    {/* <Edit nodeID={node.ID !== undefined ? node.ID : -1} /> */}
                   </ButtonGroup>
                 </td>
               </tr>

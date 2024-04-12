@@ -59,7 +59,7 @@ func GetConnectionConfiguration(w http.ResponseWriter, r *http.Request) {
 
 	challenge, found := challenges[request.PeerID]
 	if !found {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Challenge not found", http.StatusBadRequest)
 		return
 	}
 	delete(challenges, request.PeerID)
