@@ -274,7 +274,7 @@ func (s *VPNInterfaceTestSuite) TestPacketNoisySimple() {
 	id, err := peer.IDFromPrivateKey(prvKey)
 	s.NoError(err)
 
-	stream := utils.NewFakeStream(id.Pretty())
+	stream := utils.NewFakeStream(id.String())
 	streamMap.NewWithNoise(getStreamKey(id, id), stream, i)
 
 	testInterface := NewTestPacketBuffer()

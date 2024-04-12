@@ -251,12 +251,12 @@ func (v *VPNInterface) Write(b []byte) (int, error) {
 }
 
 func (v *VPNInterface) getOutboundStreamKey(dstID peer.ID) string {
-	return v.host.ID().Pretty() + dstID.Pretty()
+	return v.host.ID().String() + dstID.String()
 }
 
 func (v *VPNInterface) getInboundStreamKey(dstID peer.ID) string {
 	srcID := v.host.ID()
-	return dstID.Pretty() + srcID.Pretty()
+	return dstID.String() + srcID.String()
 }
 
 // Call IOChain from the higher encapsulation level

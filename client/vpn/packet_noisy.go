@@ -13,7 +13,7 @@ type PacketNoisy struct {
 }
 
 func getStreamKey(dstID, srcID peer.ID) string {
-	return srcID.Pretty() + dstID.Pretty()
+	return srcID.String() + dstID.String()
 }
 
 // Unseal Packet TO byte slice b
