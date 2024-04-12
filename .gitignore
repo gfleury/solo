@@ -2,5 +2,4 @@ solo
 server/core-api/core-api
 test.db
 server/oauth2/oauth2
-rendezvous
 TOKEN
