@@ -4,7 +4,10 @@ Fully p2p VPN service. Inspired by github.com/mudler/edgevpn.
 
 - Easy creation of software defined networks
 - Connect many hosts in a mesh network
-
+- Connectivity using libp2p [https://libp2p.io/]
+- Inter node trust using Ed25519 public/private keys
+- VPN streams encrytion using Noise with node keys (which goes on top of libp2p encryption)
+- GZIP packet compression
 
 Access https://web.fleury.gg, login and create a network.
 

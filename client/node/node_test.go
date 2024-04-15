@@ -84,7 +84,7 @@ func (s *NodeTestSuite) TestNodeDiscoveryBasic() {
 			case <-ctx.Done():
 				return
 			default:
-				e.Broadcaster.SendPacket(ctx, metapacket.NewMetaPacket(protocol.Type_PRP, &prp.PRPacket{PRPType: prp.PRPReply, IP: "10.2.3.4", Machine: models.NetworkNode{PeerID: e.Host().ID().String()}}))
+				e.Broadcaster.SendPacket(ctx, metapacket.NewMetaPacket(protocol.Type_PRP, &prp.PRPacket{PRPType: prp.PRPReply, IP: "10.2.3.4", Machine: models.NetworkNode{OwnPeerIdentification: e.Host().ID().String()}}))
 				e2.Broadcaster.SendPacket(ctx, metapacket.NewFromPayload(prp.NewPRPRequestPacket("10.2.3.1")))
 				e.Broadcaster.SendPacket(ctx, metapacket.NewFromPayload(prp.NewPRPRequestPacket("10.2.3.2")))
 				time.Sleep(2 * time.Second)

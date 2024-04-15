@@ -36,13 +36,13 @@ func GetConnectionConfigurationChallenge(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	challenges[networkNode.PeerID], err = models.GenerateNewRandomCode(128)
+	challenges[networkNode.OwnPeerIdentification], err = models.GenerateNewRandomCode(128)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	response := common.ConnectionConfigurationChallengeResponse{Challenge: challenges[networkNode.PeerID]}
+	response := common.ConnectionConfigurationChallengeResponse{Challenge: challenges[networkNode.OwnPeerIdentification]}
 
 	JsonResponse(&response, http.StatusOK, w)
 }

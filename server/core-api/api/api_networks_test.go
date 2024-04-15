@@ -18,7 +18,8 @@ import (
 )
 
 type S struct {
-	muxer http.Handler
+	muxer    http.Handler
+	p2pMuxer http.Handler
 }
 
 var test_user1 = models.User{
@@ -47,6 +48,7 @@ func setJWTTest(next http.Handler) http.Handler {
 	})
 }
 func Test(t *testing.T) {
+	check.Suite(&S{})
 	check.TestingT(t)
 }
 
@@ -62,8 +64,15 @@ func (s *S) SetUpSuite(c *check.C) {
 	result = db.NonProtectedDB().Create(&test_user2)
 	c.Assert(result.Error, check.IsNil)
 
+	test_network1.User = &test_user2
 	result = db.NonProtectedDB().Create(&test_network1)
 	c.Assert(result.Error, check.IsNil)
+
+	// p2p setup suite
+	p2pRouter := NewP2PRouter()
+	p2pRouter.Use(db.SetDBMiddleware)
+	s.p2pMuxer = p2pRouter
+
 }
 
 func (s *S) TearDownSuite(c *check.C) {

@@ -142,3 +142,13 @@ func (s *SoloAPIP2PClient) GetNodeNetworkConfiguration() (*ConnectionConfigurati
 
 	return r, resp.StatusCode, err
 }
+
+func (s *SoloAPIP2PClient) UpdateNode(node models.NetworkNode) (int, error) {
+	b, err := json.Marshal(&node)
+	if err != nil {
+		return 0, err
+	}
+
+	resp, err := s.client.Post(fmt.Sprintf("%s/api/v1/node", s.address), "application/json", bytes.NewReader(b))
+	return resp.StatusCode, err
+}

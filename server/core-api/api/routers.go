@@ -69,6 +69,13 @@ var p2pRoutes = Routes{
 	},
 
 	Route{
+		"UpdateNode",
+		"POST",
+		"/api/v1/node",
+		UpdateNode,
+	},
+
+	Route{
 		"GetConnectionConfigurationChallenge",
 		"POST",
 		"/api/v1/node/connnection_configuration",
@@ -204,7 +211,7 @@ var routes = Routes{
 	},
 
 	Route{
-		"UpdateNode",
+		"GetNodes",
 		strings.ToUpper("Get"),
 		"/api/v1/nodes",
 		GetNodes,

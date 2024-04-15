@@ -16,6 +16,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/gfleury/solo/client/utils"
+
+	"github.com/lib/pq"
 	"github.com/libp2p/go-libp2p/core/host"
 )
 
@@ -44,13 +47,14 @@ type NetworkNode struct {
 	Network   *Network `json:"-"`
 	Actived   bool     `json:"-"`
 
-	PeerID    string `gorm:"uniqueIndex"`
-	Hostname  string
-	OS        string
-	Arch      string
-	IP        string
-	Version   string
-	PublicKey []byte
+	OwnPeerIdentification string `gorm:"uniqueIndex"`
+	Hostname              string
+	OS                    string
+	Arch                  string
+	IP                    string
+	Version               string
+	PublicKey             []byte
+	LocalRoutes           pq.StringArray `gorm:"type:text[]"`
 }
 
 func NewNetwork(name, CIDR string) *Network {
@@ -60,13 +64,12 @@ func NewNetwork(name, CIDR string) *Network {
 	}
 }
 
-func (a *Network) NextFreeIP() string {
-	_, cidr, err := net.ParseCIDR(a.CIDR)
+func (n *Network) NextFreeIP() string {
+	_, cidr, err := net.ParseCIDR(n.CIDR)
 	if err != nil {
 		return ""
 	}
-	if len(a.Nodes) == 0 {
-
+	if len(n.Nodes) == 0 {
 		ip := cidr.IP
 		ip[3] = uint8(1)
 
@@ -74,19 +77,19 @@ func (a *Network) NextFreeIP() string {
 		return nextIpWithMask.String()
 	}
 
-	sort.Slice(a.Nodes, func(i, j int) bool {
-		iIP, _, err := net.ParseCIDR(a.Nodes[i].IP)
+	sort.Slice(n.Nodes, func(i, j int) bool {
+		iIP, _, err := net.ParseCIDR(n.Nodes[i].IP)
 		if err != nil {
 			return false
 		}
-		jIP, _, err := net.ParseCIDR(a.Nodes[j].IP)
+		jIP, _, err := net.ParseCIDR(n.Nodes[j].IP)
 		if err != nil {
 			return false
 		}
 		return uint8(iIP[3]) > uint8(jIP[3])
 	})
 
-	lastNode := a.Nodes[len(a.Nodes)-1]
+	lastNode := n.Nodes[len(n.Nodes)-1]
 
 	addr, err := netip.ParseAddr(strings.Split(lastNode.IP, "/")[0])
 	if err != nil {
@@ -102,25 +105,25 @@ func (a *Network) NextFreeIP() string {
 	return nextIpWithMask.String()
 }
 
-func (a *Network) Json() ([]byte, error) {
-	return json.Marshal(a)
+func (n *Network) Json() ([]byte, error) {
+	return json.Marshal(n)
 }
 
-func (a *Network) Valid() error {
-	if a.Name == "" {
+func (n *Network) Valid() error {
+	if n.Name == "" {
 		return fmt.Errorf("name can't be empty")
 	}
-	_, _, err := net.ParseCIDR(a.CIDR)
+	_, _, err := net.ParseCIDR(n.CIDR)
 	return err
 }
 
-func (a *NetworkNode) Json() ([]byte, error) {
-	return json.Marshal(a)
+func (n *NetworkNode) Json() ([]byte, error) {
+	return json.Marshal(n)
 }
 
-func (a *NetworkNode) Valid() error {
-	if a.Arch == "" || a.IP != "" || a.OS == "" ||
-		a.PeerID == "" || a.Hostname == "" || a.Version == "" {
+func (n *NetworkNode) Valid() error {
+	if n.Arch == "" || n.IP != "" || n.OS == "" ||
+		n.OwnPeerIdentification == "" || n.Hostname == "" || n.Version == "" {
 		return fmt.Errorf("node is invalid")
 	}
 	return nil
@@ -134,13 +137,19 @@ func NewLocalNode(host host.Host, IP string) NetworkNode {
 	privKey := ed25519.PrivateKey(rawPrivKey)
 	pubKey := privKey.Public().(ed25519.PublicKey)
 
+	networks, err := utils.FetchLocalRoutes(IP)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	return NetworkNode{
-		PeerID:    host.ID().String(),
-		Hostname:  hostname,
-		OS:        runtime.GOOS,
-		Arch:      runtime.GOARCH,
-		Version:   "0.0.1",
-		IP:        IP,
-		PublicKey: pubKey,
+		OwnPeerIdentification: host.ID().String(),
+		Hostname:              hostname,
+		OS:                    runtime.GOOS,
+		Arch:                  runtime.GOARCH,
+		Version:               "0.0.1",
+		IP:                    IP,
+		PublicKey:             pubKey,
+		LocalRoutes:           networks,
 	}
 }
