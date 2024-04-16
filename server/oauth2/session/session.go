@@ -24,7 +24,7 @@ const ProviderParamKey key = iota
 
 var SessionManager *scs.SessionManager
 
-var JWT_SECRET = []byte("<add-a-real-secret-here>")
+var JWT_SECRET = []byte(os.Getenv("JWT_SECRET"))
 
 var CookieDomain = "fleury.gg"
 var CookieSecure = true
@@ -126,10 +126,6 @@ func GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error) {
 
 	SessionManager.Put(req.Context(), providerName, sess.Marshal())
 
-	if err != nil {
-		return "", err
-	}
-
 	return url, err
 }
 
@@ -225,6 +221,7 @@ func AddJwtCookie(user goth.User, res http.ResponseWriter) (string, error) {
 		HttpOnly: false,
 		Secure:   CookieSecure,
 		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().UTC().Add(31 * 24 * time.Hour),
 	}
 
 	// Use the http.SetCookie() function to send the cookie to the client.
