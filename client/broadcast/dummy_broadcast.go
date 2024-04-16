@@ -21,7 +21,7 @@ func NewDummyBroadcast() *DummyBroadcast {
 
 func (b *DummyBroadcast) Lookup(dstIP string) (*models.NetworkNode, bool, bool) {
 	if peer, found := b.table[dstIP]; found {
-		return &models.NetworkNode{OwnPeerIdentification: peer.String(), IP: dstIP, OS: "linux"}, found, false
+		return &models.NetworkNode{PeerID: peer.String(), IP: dstIP, OS: "linux"}, found, false
 	}
 	return nil, false, false
 }

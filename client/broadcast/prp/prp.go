@@ -2,6 +2,7 @@ package prp
 
 import (
 	"encoding/json"
+	"net"
 
 	"github.com/gfleury/solo/client/broadcast/protocol"
 	"github.com/gfleury/solo/common/models"
@@ -42,6 +43,18 @@ func (p *PRPacket) Process(logger log.StandardLogger, table interface{}) (protoc
 		logger.Infof("PRPRequest IP: who's %s?  I'm %s", p.IP, PRPTable.localIP)
 		if p.IP == PRPTable.localIP {
 			return PRPTable.PRPReplyMyself(false), nil
+		} else {
+			_, mySelf := PRPTable.Myself()
+			for _, route := range mySelf.LocalRoutes {
+				_, ipnet, err := net.ParseCIDR(route)
+				if err != nil {
+					logger.Errorf("Failed to query route: %s with error %s", route, err)
+					continue
+				}
+				if ipnet.Contains(net.IP(p.IP)) {
+					return PRPTable.PRPReplyMyself(false), nil
+				}
+			}
 		}
 	}
 	return nil, nil

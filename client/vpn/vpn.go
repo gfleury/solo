@@ -186,7 +186,7 @@ func (v *VPNService) handlePacket(packet Packet) error {
 		return notFoundErr
 	}
 
-	dstID, err := peer.Decode(dstNode.OwnPeerIdentification)
+	dstID, err := peer.Decode(dstNode.PeerID)
 	if err != nil {
 		return errors.Wrap(err, "could not decode peer")
 	}

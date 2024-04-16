@@ -70,7 +70,7 @@ func (s *BroadcastTestSuite) TestBroadcastPubSubOTP() {
 			case <-ctx.Done():
 				return
 			default:
-				b1.SendPacket(ctx, metapacket.NewMetaPacket(protocol.Type_PRP, &prp.PRPacket{PRPType: prp.PRPReply, IP: "10.2.3.4", Machine: models.NetworkNode{OwnPeerIdentification: h1.ID().String()}}))
+				b1.SendPacket(ctx, metapacket.NewMetaPacket(protocol.Type_PRP, &prp.PRPacket{PRPType: prp.PRPReply, IP: "10.2.3.4", Machine: models.NetworkNode{PeerID: h1.ID().String()}}))
 				b2.SendPacket(ctx, metapacket.NewFromPayload(prp.NewPRPRequestPacket("10.2.3.1")))
 				b1.SendPacket(ctx, metapacket.NewFromPayload(prp.NewPRPRequestPacket("10.2.3.2")))
 				time.Sleep(2 * time.Second)
@@ -133,7 +133,7 @@ func (s *BroadcastTestSuite) TestBroadcastStreamSeal() {
 			case <-ctx.Done():
 				return
 			default:
-				b1.SendPacket(ctx, metapacket.NewMetaPacket(protocol.Type_PRP, &prp.PRPacket{PRPType: prp.PRPReply, IP: "10.2.3.4", Machine: models.NetworkNode{OwnPeerIdentification: h1.ID().String()}}))
+				b1.SendPacket(ctx, metapacket.NewMetaPacket(protocol.Type_PRP, &prp.PRPacket{PRPType: prp.PRPReply, IP: "10.2.3.4", Machine: models.NetworkNode{PeerID: h1.ID().String()}}))
 				b2.SendPacket(ctx, metapacket.NewFromPayload(prp.NewPRPRequestPacket("10.2.3.1")))
 				b1.SendPacket(ctx, metapacket.NewFromPayload(prp.NewPRPRequestPacket("10.2.3.2")))
 				time.Sleep(2 * time.Second)

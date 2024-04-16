@@ -26,7 +26,7 @@ func TestMetapacket(t *testing.T) {
 
 	if ap.IP != ep.IP ||
 		ap.Machine.IP != ep.Machine.IP ||
-		ep.Machine.OwnPeerIdentification != ap.Machine.OwnPeerIdentification {
+		ep.Machine.PeerID != ap.Machine.PeerID {
 		t.Errorf("ap != ep ( %v != %v )", ap, ep)
 	}
 }

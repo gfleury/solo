@@ -47,14 +47,14 @@ type NetworkNode struct {
 	Network   *Network `json:"-"`
 	Actived   bool     `json:"-"`
 
-	OwnPeerIdentification string `gorm:"uniqueIndex"`
-	Hostname              string
-	OS                    string
-	Arch                  string
-	IP                    string
-	Version               string
-	PublicKey             []byte
-	LocalRoutes           pq.StringArray `gorm:"type:text[]"`
+	PeerID      string `gorm:"embedded,uniqueIndex"`
+	Hostname    string
+	OS          string
+	Arch        string
+	IP          string
+	Version     string
+	PublicKey   []byte
+	LocalRoutes pq.StringArray `gorm:"type:text[]"`
 }
 
 func NewNetwork(name, CIDR string) *Network {
@@ -123,7 +123,7 @@ func (n *NetworkNode) Json() ([]byte, error) {
 
 func (n *NetworkNode) Valid() error {
 	if n.Arch == "" || n.IP != "" || n.OS == "" ||
-		n.OwnPeerIdentification == "" || n.Hostname == "" || n.Version == "" {
+		n.PeerID == "" || n.Hostname == "" || n.Version == "" {
 		return fmt.Errorf("node is invalid")
 	}
 	return nil
@@ -143,13 +143,13 @@ func NewLocalNode(host host.Host, IP string) NetworkNode {
 	}
 
 	return NetworkNode{
-		OwnPeerIdentification: host.ID().String(),
-		Hostname:              hostname,
-		OS:                    runtime.GOOS,
-		Arch:                  runtime.GOARCH,
-		Version:               "0.0.1",
-		IP:                    IP,
-		PublicKey:             pubKey,
-		LocalRoutes:           networks,
+		PeerID:      host.ID().String(),
+		Hostname:    hostname,
+		OS:          runtime.GOOS,
+		Arch:        runtime.GOARCH,
+		Version:     "0.0.1",
+		IP:          IP,
+		PublicKey:   pubKey,
+		LocalRoutes: networks,
 	}
 }

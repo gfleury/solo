@@ -63,6 +63,8 @@ func init() {
 	}
 
 	// Migrate the schema
+	// Dirty hack to fix some weird behavior on gorm, I suspect is because of the field PeerID on NetworkNode model
+	db.Exec("ALTER TABLE network_nodes ADD CONSTRAINT uni_network_nodes_peer_id UNIQUE(peer_id)")
 	err = db.AutoMigrate(&models.Network{}, &models.NetworkNode{}, &models.LinkedUser{}, &models.User{}, &models.RegistrationRequest{})
 	if err != nil {
 		panic(err)
