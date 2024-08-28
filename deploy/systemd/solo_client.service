@@ -1,0 +1,15 @@
+[Unit]
+Description=Solo VPN Client
+After=network.target
+
+[Service]
+ExecStart=/usr/local/sbin/solo -i utun4 -l debug -H --libp2p-log-level p2p-holepunch:debug
+ExecStop=/bin/kill -s SIGTERM $MAINPID
+Restart=always
+User=root
+Group=root
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
+
