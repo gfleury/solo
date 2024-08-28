@@ -143,8 +143,8 @@ func (s *SoloAPIP2PClient) GetNodeNetworkConfiguration() (*ConnectionConfigurati
 	return r, resp.StatusCode, err
 }
 
-func (s *SoloAPIP2PClient) UpdateNode(node models.NetworkNode) (int, error) {
-	b, err := json.Marshal(&node)
+func (s *SoloAPIP2PClient) UpdateNode(updateRequest NodeUpdateRequest) (int, error) {
+	b, err := json.Marshal(&updateRequest)
 	if err != nil {
 		return 0, err
 	}

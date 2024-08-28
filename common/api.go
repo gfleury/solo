@@ -1,5 +1,7 @@
 package common
 
+import "github.com/gfleury/solo/common/models"
+
 type RegistrationResponse struct {
 	Code string
 }
@@ -25,4 +27,9 @@ type ConnectionConfigurationResponse struct {
 type NextIP struct {
 	NextIP  string
 	Network string
+}
+
+type NodeUpdateRequest struct {
+	Node           models.NetworkNode
+	SignedHostname string
 }

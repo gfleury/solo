@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gfleury/solo/common"
 	"github.com/gfleury/solo/common/models"
 	"github.com/gfleury/solo/server/core-api/db"
 	"github.com/gfleury/solo/server/core-api/jwt"
@@ -151,6 +152,35 @@ func UpdateNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	JsonResponse(&n, http.StatusCreated, w)
+}
+
+func UpdateNodeSelf(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var n common.NodeUpdateRequest
+
+	err := json.NewDecoder(r.Body).Decode(&n)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err = n.Node.Valid(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+
+	db_handler := db.GetDB(r.Context())
+
+	// Check if it was signed correctly
+
+	result := db_handler.Save(&n.Node)
+
+	if result.Error != nil {
+		http.Error(w, result.Error.Error(), http.StatusBadRequest)
+		return
+	}
+
+	JsonResponse(&n.Node, http.StatusCreated, w)
 }
 
 func GetNodes(w http.ResponseWriter, r *http.Request) {

@@ -263,6 +263,12 @@ func (e *Node) configurationDiscovery(ctx context.Context) error {
 				if err != nil {
 					return err
 				}
+				myselfMachine := models.NewLocalNode(e.host, e.config.InterfaceAddress)
+
+				statusCode, err = client.UpdateNode(common.NodeUpdateRequest{Node: myselfMachine})
+				if err != nil {
+					e.config.Logger.Errorf("Failed to selfupdate node: %d %s", statusCode, err)
+				}
 				break OUT
 			}
 		}

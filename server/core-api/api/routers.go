@@ -72,7 +72,7 @@ var p2pRoutes = Routes{
 		"UpdateNode",
 		"POST",
 		"/api/v1/node",
-		UpdateNode,
+		UpdateNodeSelf,
 	},
 
 	Route{

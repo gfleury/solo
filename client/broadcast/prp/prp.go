@@ -52,6 +52,7 @@ func (p *PRPacket) Process(logger log.StandardLogger, table interface{}) (protoc
 					continue
 				}
 				if ipnet.Contains(net.IP(p.IP)) {
+					logger.Infof("Ip %s belongs to network %s", p.IP, ipnet)
 					return PRPTable.PRPReplyMyself(false), nil
 				}
 			}
