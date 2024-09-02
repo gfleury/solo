@@ -34,6 +34,9 @@ type VPNService struct {
 
 	// Frame processing timeout
 	timeout time.Duration
+
+	// Packet ring
+	packetRing PacketRing
 }
 
 type VPNHost interface {
@@ -171,7 +174,7 @@ func (v *VPNService) handlePacket(packet Packet) error {
 
 	dst := dstIp.String()
 
-	notFoundErr := fmt.Errorf("'%s' not found in the routing table", dst)
+	notFoundErr := NewNotFoundError(dst)
 
 	// Query the routing table
 	dstNode, found, wasLookupNotLongAgo := v.broadcast.Lookup(dst)
@@ -212,9 +215,13 @@ func (v *VPNService) readPackets(ctx context.Context) {
 
 			if err := v.handlePacket(packet[:n]); err != nil {
 				v.logger.Errorf("Handle packet error: %s", err)
-				continue
+				if _, ok := err.(*VpnError); ok {
+					v.packetRing.AddPacket(packet[:n])
+				}
 			}
 
+			// If last packet was succesful delivered, then try to deliver
+			go v.packetRing.ProcessPackets(v.handlePacket)
 		}
 	}
 }

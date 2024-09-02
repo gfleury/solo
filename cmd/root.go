@@ -77,7 +77,7 @@ func Execute() {
 	rootCmd.PersistentFlags().StringVar(&config.Libp2pLogLevel, "libp2p-log-level", "error", "Libp2p log level")
 	rootCmd.PersistentFlags().StringVarP(&config.LogLevel, "log-level", "l", "info", "Log level")
 	rootCmd.PersistentFlags().StringArrayVarP(&config.DiscoveryPeers, "discovery-peers", "d", DEFAULT_DISCOVERY_PEERS, "Discovery peers addresss")
-	rootCmd.PersistentFlags().IntVarP(&config.DiscoveryInterval, "discovery-interval", "I", 120, "Discovery peers interval")
+	rootCmd.PersistentFlags().IntVarP(&config.DiscoveryInterval, "discovery-interval", "I", 10, "Discovery peers interval")
 	rootCmd.PersistentFlags().IntVarP(&config.InterfaceMTU, "interface-mtu", "m", 1420, "Discovery peers interval")
 	rootCmd.PersistentFlags().IntVarP(&config.MaxConnections, "max-connections", "M", 256, "Maximum peer connections")
 	rootCmd.PersistentFlags().BoolVarP(&config.HolePunch, "hole-punch", "H", true, "Enable holepunch to bypass NAT")

@@ -76,7 +76,11 @@ func (s *SoloAPIP2PClient) GetNodeNetworkConfiguration() (*ConnectionConfigurati
 	}
 	resp, err := s.client.Post(fmt.Sprintf("%s/api/v1/node/connnection_configuration", s.address), "application/json", bytes.NewReader(b))
 	if err != nil {
-		return nil, resp.StatusCode, err
+		code := 0
+		if resp != nil {
+			code = resp.StatusCode
+		}
+		return nil, code, err
 	}
 	if resp.StatusCode > 399 {
 		return nil, resp.StatusCode, fmt.Errorf("HTTP Error: %s", resp.Status)

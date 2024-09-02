@@ -38,21 +38,25 @@ func (e *PRPEntry) UpdateLastSeen() {
 	e.LastSeen = time.Now()
 }
 
-// Returns Machine, isFound and if it was Queried Less Than 5 Seconds Ago
+// Returns Machine, isFound and if it was Queried Less Than 2 Seconds Ago
 func (t *PRPTableType) Lookup(ip string) (*models.NetworkNode, bool, bool) {
 	t.Lock()
 	defer t.Unlock()
+	queriedAlmostNow := false
+	if last, ok := t.LastLookupTable.Get(ip); ok {
+		if time.Since(last) < 2*time.Second {
+			queriedAlmostNow = true
+		} else {
+			t.LastLookupTable.Put(ip, time.Now())
+		}
+	} else {
+		t.LastLookupTable.Put(ip, time.Now())
+	}
 	if e, ok := t.Table.Get(ip); ok {
 		e.UpdateLastSeen()
-		return e.Machine, ok, false
+		return e.Machine, ok, queriedAlmostNow
 	}
-	if last, ok := t.LastLookupTable.Get(ip); ok {
-		if time.Since(last) < 5*time.Second {
-			t.LastLookupTable.Put(ip, time.Now())
-			return nil, false, true
-		}
-	}
-	return nil, false, false
+	return nil, false, queriedAlmostNow
 }
 
 func (t *PRPTableType) Myself() (string, *models.NetworkNode) {
