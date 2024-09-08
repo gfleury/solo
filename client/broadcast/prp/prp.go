@@ -51,9 +51,10 @@ func (p *PRPacket) Process(logger log.StandardLogger, table interface{}) (protoc
 					logger.Errorf("Failed to query route: %s with error %s", route, err)
 					continue
 				}
-				if ipnet.Contains(net.IP(p.IP)) {
+				unknownIP := net.ParseIP(p.IP)
+				if ipnet.Contains(unknownIP) {
 					logger.Infof("Ip %s belongs to network %s", p.IP, ipnet)
-					return PRPTable.PRPReplyMyself(false), nil
+					return PRPTable.PRPReplyMyLocalNetwork(false, p.IP), nil
 				}
 			}
 		}

@@ -37,6 +37,7 @@ var (
 		StandaloneMode:       false,
 		RandomIdentity:       false,
 		RandomPort:           false,
+		PublishLocalRoutes:   false,
 	}
 )
 
@@ -74,6 +75,7 @@ func Execute() {
 	rootCmd.PersistentFlags().StringVarP(&config.InterfaceAddress, "address", "a", "192.168.254.0/24", "TUN interface ip address")
 	rootCmd.PersistentFlags().StringVarP(&config.InterfaceName, "interface", "i", "utun0", "TUN interface name")
 	rootCmd.PersistentFlags().BoolVarP(&config.CreateInterface, "create-iface", "c", true, "Create TUN network interface")
+	rootCmd.PersistentFlags().BoolVarP(&config.PublishLocalRoutes, "publish-local-routes", "p", false, "Publish local routes to other hosts")
 	rootCmd.PersistentFlags().StringVar(&config.Libp2pLogLevel, "libp2p-log-level", "error", "Libp2p log level")
 	rootCmd.PersistentFlags().StringVarP(&config.LogLevel, "log-level", "l", "info", "Log level")
 	rootCmd.PersistentFlags().StringArrayVarP(&config.DiscoveryPeers, "discovery-peers", "d", DEFAULT_DISCOVERY_PEERS, "Discovery peers addresss")

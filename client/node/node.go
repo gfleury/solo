@@ -178,6 +178,7 @@ func NewWithConfig(cliConfig config.Config) (*Node, error) {
 		PublicDiscoveryPeers:  cliConfig.PublicDiscoveryPeers,
 		ConnectionConfigToken: cliConfig.Token,
 		StandaloneMode:        cliConfig.StandaloneMode,
+		PublishLocalRoutes:    cliConfig.PublishLocalRoutes,
 	}
 
 	return &Node{
@@ -263,7 +264,7 @@ func (e *Node) configurationDiscovery(ctx context.Context) error {
 				if err != nil {
 					return err
 				}
-				myselfMachine := models.NewLocalNode(e.host, e.config.InterfaceAddress)
+				myselfMachine := models.NewLocalNodeWithRoutes(e.host, e.config.InterfaceAddress, e.config.PublishLocalRoutes)
 
 				statusCode, err = client.UpdateNode(common.NodeUpdateRequest{Node: myselfMachine})
 				if err != nil {

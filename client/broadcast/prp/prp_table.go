@@ -91,3 +91,15 @@ func (t *PRPTableType) PRPReplyMyself(always bool) protocol.Payload {
 	}
 	return nil
 }
+
+func (t *PRPTableType) PRPReplyMyLocalNetwork(always bool, ip string) protocol.Payload {
+	// Return nil if we already replied in the last second
+	if time.Since(t.lastReplySent) > 1*time.Second || always {
+		_, myself := t.Myself()
+		t.Lock()
+		defer t.Unlock()
+		t.lastReplySent = time.Now()
+		return &PRPacket{PRPReply, *myself, ip}
+	}
+	return nil
+}

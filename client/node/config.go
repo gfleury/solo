@@ -47,8 +47,9 @@ type Config struct {
 	NetworkServices  []NetworkService
 	Logger           log.StandardLogger
 
-	InterfaceAddress string
-	InterfaceMTU     int
+	InterfaceAddress   string
+	InterfaceMTU       int
+	PublishLocalRoutes bool
 
 	AdditionalOptions, Options []libp2p.Option
 

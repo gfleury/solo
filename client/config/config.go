@@ -9,6 +9,7 @@ type Config struct {
 	InterfaceAddress     string
 	InterfaceName        string
 	CreateInterface      bool
+	PublishLocalRoutes   bool
 	Libp2pLogLevel       string
 	LogLevel             string
 	DiscoveryPeers       []string

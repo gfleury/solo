@@ -130,6 +130,10 @@ func (n *NetworkNode) Valid() error {
 }
 
 func NewLocalNode(host host.Host, IP string) NetworkNode {
+	return NewLocalNodeWithRoutes(host, IP, false)
+}
+
+func NewLocalNodeWithRoutes(host host.Host, IP string, fetchLocalRoutes bool) NetworkNode {
 	hostname, _ := os.Hostname()
 
 	// Extract PubKey from private Key
@@ -137,9 +141,13 @@ func NewLocalNode(host host.Host, IP string) NetworkNode {
 	privKey := ed25519.PrivateKey(rawPrivKey)
 	pubKey := privKey.Public().(ed25519.PublicKey)
 
-	networks, err := utils.FetchLocalRoutes(IP)
-	if err != nil {
-		fmt.Println(err)
+	var networks []string
+	var err error
+	if fetchLocalRoutes {
+		networks, err = utils.FetchLocalRoutes(IP)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	return NetworkNode{
