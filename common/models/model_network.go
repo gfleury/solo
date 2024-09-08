@@ -122,7 +122,7 @@ func (n *NetworkNode) Json() ([]byte, error) {
 }
 
 func (n *NetworkNode) Valid() error {
-	if n.Arch == "" || n.IP != "" || n.OS == "" ||
+	if n.Arch == "" || n.OS == "" ||
 		n.PeerID == "" || n.Hostname == "" || n.Version == "" {
 		return fmt.Errorf("node is invalid")
 	}

@@ -173,13 +173,19 @@ func UpdateNodeSelf(w http.ResponseWriter, r *http.Request) {
 
 	// Check if it was signed correctly
 
-	result := db_handler.Save(&n.Node)
+	result := db_handler.Find(&n.Node)
 
 	if result.Error != nil {
 		http.Error(w, result.Error.Error(), http.StatusBadRequest)
 		return
 	}
 
+	result = db_handler.Save(&n.Node)
+
+	if result.Error != nil {
+		http.Error(w, result.Error.Error(), http.StatusBadRequest)
+		return
+	}
 	JsonResponse(&n.Node, http.StatusCreated, w)
 }
 
