@@ -141,7 +141,7 @@ func NewLocalNodeWithRoutes(host host.Host, IP string, fetchLocalRoutes bool) Ne
 	privKey := ed25519.PrivateKey(rawPrivKey)
 	pubKey := privKey.Public().(ed25519.PublicKey)
 
-	var networks []string
+	networks := []string{}
 	var err error
 	if fetchLocalRoutes {
 		networks, err = utils.FetchLocalRoutes(IP)
