@@ -171,7 +171,7 @@ func UpdateNodeSelf(w http.ResponseWriter, r *http.Request) {
 
 	db_handler := db.GetDB(r.Context())
 
-	// Check if it was signed correctly
+	localRoutes := n.Node.LocalRoutes
 
 	result := db_handler.Find(&n.Node)
 
@@ -179,6 +179,8 @@ func UpdateNodeSelf(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, result.Error.Error(), http.StatusBadRequest)
 		return
 	}
+
+	n.Node.LocalRoutes = localRoutes
 
 	result = db_handler.Save(&n.Node)
 
