@@ -116,8 +116,8 @@ func (s *BroadcastTestSuite) TestBroadcastStreamSeal() {
 		Interval:  120,
 	}
 
-	b1 := broadcast.NewStreamBroadcaster(logger, discovery.AddrList{}, otpKey)
-	b2 := broadcast.NewStreamBroadcaster(logger, discovery.AddrList{}, otpKey)
+	b1 := broadcast.NewStreamBroadcaster(logger, discovery.AddrList{}, otpKey, false)
+	b2 := broadcast.NewStreamBroadcaster(logger, discovery.AddrList{}, otpKey, false)
 
 	go func() {
 		b1.Start(ctx, h1, "10.2.3.1")

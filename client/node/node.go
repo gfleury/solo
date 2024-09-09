@@ -356,6 +356,7 @@ func (e *Node) startBroadcastService(ctx context.Context) error {
 		e.config.Logger,
 		e.config.DiscoveryPeers,
 		e.config.BroadcastKey,
+		e.config.PublishLocalRoutes,
 	)
 
 	// Configure Broadcast and PRP

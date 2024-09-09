@@ -24,19 +24,21 @@ import (
 type StreamBroadcaster struct {
 	sync.Mutex
 
-	discoveryPeersIDs []peer.ID
-	selfHost          host.Host
-	ready             bool
-	otpKey            crypto.OTPKey
-	sealer            crypto.Sealer
-	logger            log.StandardLogger
-	PRPTable          *prp.PRPTableType
+	discoveryPeersIDs  []peer.ID
+	selfHost           host.Host
+	ready              bool
+	otpKey             crypto.OTPKey
+	sealer             crypto.Sealer
+	logger             log.StandardLogger
+	PRPTable           *prp.PRPTableType
+	publishLocalRoutes bool
 }
 
 func NewStreamBroadcaster(
 	logger log.StandardLogger,
 	discoveryPeers discovery.AddrList,
 	otpKey crypto.OTPKey,
+	publishLocalRoutes bool,
 ) Broadcaster {
 	discoveryPeersIDs := make([]peer.ID, len(discoveryPeers))
 	for _, discoveryPeer := range discoveryPeers {
@@ -45,11 +47,12 @@ func NewStreamBroadcaster(
 	}
 
 	return &StreamBroadcaster{
-		otpKey:            otpKey,
-		sealer:            &crypto.DefaultSealer{},
-		logger:            logger,
-		PRPTable:          prp.NewPRPTable(),
-		discoveryPeersIDs: discoveryPeersIDs,
+		otpKey:             otpKey,
+		sealer:             &crypto.DefaultSealer{},
+		logger:             logger,
+		PRPTable:           prp.NewPRPTable(),
+		discoveryPeersIDs:  discoveryPeersIDs,
+		publishLocalRoutes: publishLocalRoutes,
 	}
 }
 func (m *StreamBroadcaster) Lookup(dstIP string) (*models.NetworkNode, bool, bool) {
@@ -174,7 +177,7 @@ func (m *StreamBroadcaster) Start(ctx context.Context, host host.Host, myIP stri
 	defer m.Unlock()
 
 	// Insert myself on the PRPTable
-	myselfMachine := models.NewLocalNode(host, myIP)
+	myselfMachine := models.NewLocalNodeWithRoutes(host, myIP, m.publishLocalRoutes)
 	m.PRPTable.InsertMyselfEntry(&myselfMachine)
 	m.selfHost = host
 
