@@ -146,7 +146,7 @@ func NewLocalNodeWithRoutes(host host.Host, IP string, fetchLocalRoutes bool) Ne
 	if fetchLocalRoutes {
 		networks, err = utils.FetchLocalRoutes(IP)
 		if err != nil {
-			fmt.Println(err)
+			networks = []string{}
 		}
 	}
 

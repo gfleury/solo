@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"net"
 	"strings"
 )
@@ -17,7 +16,6 @@ func FetchLocalRoutes(localIP string) ([]string, error) {
 	for _, i := range ifaces {
 		addrs, err := i.Addrs()
 		if err != nil {
-			fmt.Println(err)
 			continue
 		}
 		for _, a := range addrs {
