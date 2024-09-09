@@ -196,7 +196,7 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.Us
 
 func AddJwtCookie(user goth.User, res http.ResponseWriter) (string, error) {
 	claims := jwt.MapClaims{}
-	claims["exp"] = user.ExpiresAt.UTC().Unix()
+	claims["exp"] = time.Now().AddDate(1, 0, 0).Unix()
 	claims["authorized"] = true
 	claims["user"] = user.UserID
 	claims["email"] = user.Email
