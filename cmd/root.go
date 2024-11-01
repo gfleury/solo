@@ -80,7 +80,7 @@ func Execute() {
 	rootCmd.PersistentFlags().StringVarP(&config.LogLevel, "log-level", "l", "info", "Log level")
 	rootCmd.PersistentFlags().StringArrayVarP(&config.DiscoveryPeers, "discovery-peers", "d", DEFAULT_DISCOVERY_PEERS, "Discovery peers addresss")
 	rootCmd.PersistentFlags().IntVarP(&config.DiscoveryInterval, "discovery-interval", "I", 10, "Discovery peers interval")
-	rootCmd.PersistentFlags().IntVarP(&config.InterfaceMTU, "interface-mtu", "m", 1420, "Discovery peers interval")
+	rootCmd.PersistentFlags().IntVarP(&config.InterfaceMTU, "interface-mtu", "m", 1412, "Discovery peers interval")
 	rootCmd.PersistentFlags().IntVarP(&config.MaxConnections, "max-connections", "M", 256, "Maximum peer connections")
 	rootCmd.PersistentFlags().BoolVarP(&config.HolePunch, "hole-punch", "H", true, "Enable holepunch to bypass NAT")
 	rootCmd.PersistentFlags().BoolVarP(&config.PublicDiscoveryPeers, "public", "p", false, "Enable public discovery peers")

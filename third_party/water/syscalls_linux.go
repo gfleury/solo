@@ -7,13 +7,6 @@ import (
 	"unsafe"
 )
 
-const (
-	cIFFTUN        = 0x0001
-	cIFFTAP        = 0x0002
-	cIFFNOPI       = 0x1000
-	cIFFMULTIQUEUE = 0x0100
-)
-
 type ifReq struct {
 	Name  [0x10]byte
 	Flags uint16
@@ -29,14 +22,14 @@ func ioctl(fd uintptr, request uintptr, argp uintptr) error {
 }
 
 func setupFd(config Config, fd uintptr) (name string, err error) {
-	var flags uint16 = cIFFNOPI
+	var flags uint16 = syscall.IFF_NO_PI
 	if config.DeviceType == TUN {
-		flags |= cIFFTUN
+		flags |= syscall.IFF_TUN
 	} else {
-		flags |= cIFFTAP
+		flags |= syscall.IFF_TAP
 	}
 	if config.PlatformSpecificParams.MultiQueue {
-		flags |= cIFFMULTIQUEUE
+		flags |= 0x0100
 	}
 
 	if name, err = createInterface(fd, config.Name, flags); err != nil {
@@ -72,6 +65,11 @@ func setDeviceOptions(fd uintptr, config Config) (err error) {
 		if err = ioctl(fd, syscall.TUNSETGROUP, uintptr(config.Permissions.Group)); err != nil {
 			return
 		}
+	}
+
+	// Set additional options to make IO faster
+	if err = ioctl(fd, syscall.TUNSETNOCSUM, 1); err != nil {
+		return err
 	}
 
 	// set clear the persist flag

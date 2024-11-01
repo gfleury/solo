@@ -41,5 +41,5 @@ type PlatformSpecificParams struct {
 }
 
 func defaultPlatformSpecificParams() PlatformSpecificParams {
-	return PlatformSpecificParams{}
+	return PlatformSpecificParams{MultiQueue: true}
 }
