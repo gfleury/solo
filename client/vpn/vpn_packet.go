@@ -22,7 +22,7 @@ type Header struct {
 	Size     uint32             // 4 bytes
 	Count    uint32             // 4 bytes
 	Type     uint8              // 1 byte
-	Reserved [2]byte            // 3 bytes
+	Reserved [2]byte            // 2 bytes
 	DstID    [PEER_ID_SIZE]byte // 38 bytes
 	SrcID    [PEER_ID_SIZE]byte // 38 bytes
 
