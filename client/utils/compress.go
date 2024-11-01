@@ -2,32 +2,24 @@ package utils
 
 import (
 	"bytes"
+	"compress/gzip"
 	"io"
-
-	"github.com/klauspost/compress/zstd"
 )
 
 func Compress(b []byte) []byte {
 	var buf bytes.Buffer
-	enc, err := zstd.NewWriter(&buf)
-	if err != nil {
-		return nil
-	}
-	_, err = enc.Write(b)
-	if err != nil {
-		return nil
-	}
-	enc.Close()
+	gz := gzip.NewWriter(&buf)
+	gz.Write(b)
+	gz.Close()
 
 	return buf.Bytes()
 }
 
 func Decompress(b []byte) ([]byte, error) {
-	dec, err := zstd.NewReader(bytes.NewReader(b))
+	r, err := gzip.NewReader(bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
-	defer dec.Close()
 
-	return io.ReadAll(dec)
+	return io.ReadAll(r)
 }
